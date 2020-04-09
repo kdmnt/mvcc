@@ -9,7 +9,7 @@ from mvcc_runner import supported_dbms
 import subprocess
 import sys
 
-YAML_FILE = "/home/dbtech/dbtech/diamantidis/pycharm/mvcc_remote/mvcc_tests.yml"
+YAML_FILE = "./mvcc_tests.yml"
 
 KEYS_ENTER = (curses.KEY_ENTER, ord('\n'), ord('\r'))
 KEYS_UP = (curses.KEY_UP, ord('k'))
@@ -175,7 +175,7 @@ class Picker(object):
 def run_scenario(dbms, test_num, test_comment, yamlfile):
     subprocess.call(
         ['x-terminal-emulator', '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry',
-         '150x52', '-e', 'python /home/dbtech/dbtech/diamantidis/pycharm/mvcc_remote/mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
+         '150x52', '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
 
 def callback(this):
     global WHICH_TESTS_RUN
