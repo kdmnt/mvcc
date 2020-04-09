@@ -94,7 +94,6 @@ keep_printing_dots = False
 YAML_FILE = None
 autocommit_on = None
 autocommit_off = None
-reset_connections = None
 fd = sys.stdin.fileno()
 normal_terminal = termios.tcgetattr(fd)
 
@@ -122,7 +121,7 @@ def parse_yaml(filePath):
             cfg = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
         global user, password, db, host, cfg_table_initialization, \
-            cfg_dbms_steps, test_comment, number_of_transactions, reset_connections
+            cfg_dbms_steps, test_comment, number_of_transactions
 
         user = cfg[dbms + '-config']['user']
         password = cfg[dbms + '-config']['password']
@@ -131,7 +130,6 @@ def parse_yaml(filePath):
         cfg_table_initialization = cfg['table-initialization']
         cfg_dbms_steps = cfg[dbms + '-tests'][test_num]
         test_comment = find_comment(filePath, dbms, test_num)
-        reset_connections = cfg[dbms + '-config']['reset']
 
         transactions = []
         for steps in cfg_dbms_steps:
@@ -356,7 +354,6 @@ def initiate_panes(panes):
         print('Connecting to ' + dbms)
 
         initiate_connection(panes[0])
-        # panes[0].send_keys(reset_connections) #currently works for postgres only
         panes[0].send_keys(autocommit_on)  # so as to terminate any left over transactions
 
         for create_table_instructions in cfg_table_initialization: #drops table T, and initializes it according to steps in the yml file

@@ -13,13 +13,11 @@ mysql-config:
     user: root
     password: dbtech
     db: testdb
-    reset: 'set global max_connections = 0; set global max_connections = 500;;'
 postgres-config:
     host: 127.0.0.1
     user: dbtech
     password: dbtech
-    db: test #remember, when changing the db, change the reset command accordingly
-    reset: "select pg_terminate_backend(pid) from pg_stat_activity where datname='test';;"
+    db: test
 sqlserver-config:
     host: 127.0.0.1
     user: SA
