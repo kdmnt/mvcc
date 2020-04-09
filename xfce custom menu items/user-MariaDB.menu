@@ -1,0 +1,17 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+    "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+<!-- Do not edit manually - generated and managed by xdg-desktop-menu -->
+<Menu>
+    <Name>Applications</Name>
+<Menu>
+    <Name>MariaDB</Name>
+    <Directory>MariaDB.directory</Directory>
+    <Include>
+        <Filename>mysql-workbench.desktop</Filename>
+        <Filename>startmariadb.desktop</Filename>
+        <Filename>stopmariadb.desktop</Filename>
+        <Filename>phpmyadmin.desktop</Filename>
+        <Filename>executemvccmysql.desktop</Filename>
+    </Include>
+</Menu>
+</Menu>
