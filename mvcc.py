@@ -88,33 +88,36 @@ class Picker(object):
 
     def draw(self):
         """draw the curses ui on the screen, handle scroll if needed"""
-        self.screen.clear()
+        try:
+            self.screen.clear()
 
-        x, y = 1, 1  # start point
-        max_y, max_x = self.screen.getmaxyx()
-        max_rows = max_y - y  # the max rows we can draw
+            x, y = 1, 1  # start point
+            max_y, max_x = self.screen.getmaxyx()
+            max_rows = max_y - y  # the max rows we can draw
 
-        lines, current_line = self.get_lines()
+            lines, current_line = self.get_lines()
 
-        # calculate how many lines we should scroll, relative to the top
-        scroll_top = getattr(self, 'scroll_top', 0)
-        if current_line <= scroll_top:
-            scroll_top = 0
-        elif current_line - scroll_top > max_rows:
-            scroll_top = current_line - max_rows
-        self.scroll_top = scroll_top
+            # calculate how many lines we should scroll, relative to the top
+            scroll_top = getattr(self, 'scroll_top', 0)
+            if current_line <= scroll_top:
+                scroll_top = 0
+            elif current_line - scroll_top > max_rows:
+                scroll_top = current_line - max_rows
+            self.scroll_top = scroll_top
 
-        lines_to_draw = lines[scroll_top:scroll_top+max_rows]
+            lines_to_draw = lines[scroll_top:scroll_top+max_rows]
 
-        for line in lines_to_draw:
-            if type(line) is tuple:
-                self.screen.addnstr(y, x, line[0], max_x-2, line[1])
-            else:
-                self.screen.addnstr(y, x, line, max_x-2)
-            y += 1
+            for line in lines_to_draw:
+                if type(line) is tuple:
+                    self.screen.addnstr(y, x, line[0], max_x-2, line[1])
+                else:
+                    self.screen.addnstr(y, x, line, max_x-2)
+                y += 1
 
-        self.screen.addstr(str(WHICH_TESTS_RUN))
-        self.screen.refresh()
+            self.screen.addstr(str(WHICH_TESTS_RUN))
+            self.screen.refresh()
+        except:
+            pass
 
     def run_loop(self, callback = None):
         while True:
@@ -129,25 +132,6 @@ class Picker(object):
                     callback(self)
                 else:
                     return
-                # global WHICH_TESTS_RUN
-                #
-                # selected_test = self.index + 1
-                #
-                # if selected_test not in WHICH_TESTS_RUN:
-                #     WHICH_TESTS_RUN = WHICH_TESTS_RUN + [selected_test]
-                #     WHICH_TESTS_RUN.sort()
-                #
-                # if selected_test == len(self.options): # last option, which must be 'EXIT PROGRAM'
-                #     sys.exit(1)
-                #
-                # test_num = 'test' + str(selected_test)
-                #
-                # test_comment = find_comment(YAML_FILE, dbms, test_num)
-                # run_scenario(dbms, test_num, test_comment, YAML_FILE)
-                # subprocess.call(['x-terminal-emulator', '-title',
-                #                  dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry',
-                #                  '150x52', '-e',
-                #                  'python mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + YAML_FILE])
 
     def config_curses(self):
         try:
