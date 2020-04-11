@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 import curses
-
+import importlib
 
 def installLibraries():
     try:
@@ -24,13 +24,15 @@ def installLibraries():
     except Exception as err:
         print(str(err))
         time.sleep(1)
+
     try:
         import libtmux
     except ImportError as err:
         if 'libtmux' in str(err):
             print ("Trying to Install required module: libtmux\n")
-            os.system('python -m pip install -Iv libtmux==0.8.2')
+            subprocess.check_call([sys.executable, "-m", "pip", "install", 'libtmux==0.8.2'])
             print('\nScreen will now clear')
+            globals()['libtmux'] = importlib.import_module('libtmux')
             time.sleep(3)
             os.system('clear')
     try:
@@ -38,8 +40,9 @@ def installLibraries():
     except ImportError as err:
         if 'yamlordereddictloader' in str(err):
             print ("Trying to Install required module: yamlordereddictloader\n")
-            os.system('python -m pip install -Iv yamlordereddictloader==0.4.0')
+            subprocess.check_call([sys.executable, "-m", "pip", "install", 'yamlordereddictloader==0.4.0'])
             print('\nScreen will now clear')
+            globals()['yamlordereddictloader'] = importlib.import_module('yamlordereddictloader')
             time.sleep(3)
             os.system('clear')
     try:
@@ -47,8 +50,9 @@ def installLibraries():
     except ImportError as err:
         if 'yaml' in str(err):
             print ("Trying to Install required module: yaml\n")
-            os.system('python -m pip install -Iv pyyaml=5.3.1')
+            subprocess.check_call([sys.executable, "-m", "pip", "install", 'pyyaml=5.3.1'])
             print('\nScreen will now clear')
+            globals()['yaml'] = importlib.import_module('yaml')
             time.sleep(3)
             os.system('clear')
 
@@ -75,8 +79,8 @@ def installTmux():
             print(str(err))
             time.sleep(1)
 
-installTmux()
 installLibraries()
+installTmux()
 
 from mvcc_runner import find_comment
 from mvcc_runner import find_comments
