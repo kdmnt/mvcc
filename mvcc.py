@@ -1,14 +1,87 @@
 #!/usr/bin/python
 #-*-coding:utf-8-*-
-
+import time
+import os
+import sys
+import subprocess
 import curses
+
+
+def installLibraries():
+    try:
+        p = subprocess.Popen(['python', '-m', 'pip', '--version'], stdout=subprocess.PIPE)
+        p.wait()
+
+        if p.poll():  # poll() returns subprocess's exit code (1 means that it failed)
+            print('Seems like pip is not installed.\n Trying to Install PIP...\n')
+            os.system('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py')
+            os.system('python get-pip.py')
+            print('\n Removing get-pip.py...\n')
+            os.system('rm get-pip.py')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+    except Exception as err:
+        print(str(err))
+        time.sleep(1)
+    try:
+        import libtmux
+    except ImportError as err:
+        if 'libtmux' in str(err):
+            print ("Trying to Install required module: libtmux\n")
+            os.system('python -m pip install -Iv libtmux==0.8.2')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+    try:
+        import yamlordereddictloader
+    except ImportError as err:
+        if 'yamlordereddictloader' in str(err):
+            print ("Trying to Install required module: yamlordereddictloader\n")
+            os.system('python -m pip install -Iv yamlordereddictloader==0.4.0')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+    try:
+        import yaml
+    except ImportError as err:
+        if 'yaml' in str(err):
+            print ("Trying to Install required module: yaml\n")
+            os.system('python -m pip install -Iv pyyaml=5.3.1')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+
+
+def installTmux():
+    try:
+        import apt
+        cache = apt.Cache()
+        if not cache['tmux'].is_installed:
+            print ("Seems like tmux is not installed.\nTrying to Install tmux...\n")
+            os.system('sudo apt-get install tmux=2.8-3')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+    except ImportError as err:
+        if 'No module named \'apt\'' in str(err):
+            print ('\nSeems like python3-apt is not installed')
+            print ('\nWill now try to install python3-apt ...\n')
+            time.sleep(3)
+            os.system('sudo apt-get install python3-apt')
+            time.sleep(3)
+            installTmux()
+        else:
+            print(str(err))
+            time.sleep(1)
+
+installTmux()
+installLibraries()
+
 from mvcc_runner import find_comment
 from mvcc_runner import find_comments
 from mvcc_runner import is_dbms_running
 from mvcc_runner import supported_dbms
-import subprocess
-import sys
-import os
 
 YAML_FILE = "./mvcc_tests.yml"
 
@@ -231,9 +304,10 @@ def main():
         else:
             test_num = sys.argv[2]
             test_comment = find_comment(YAML_FILE, dbms, test_num)
-            # subprocess.call(['x-terminal-emulator', '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry', '150x52', '-e', 'python mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + YAML_FILE])
             run_scenario(dbms, test_num, test_comment, YAML_FILE)
     except KeyboardInterrupt:
+        sys.exit(1)
+    except:
         sys.exit(0)
 
 if __name__== "__main__":
