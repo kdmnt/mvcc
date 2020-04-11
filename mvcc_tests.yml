@@ -287,42 +287,50 @@ oracle-tests:
 mysql-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2 commits'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'COMMIT;;'
         step5_T1:
-            - '-- Step5. T1 of Session 1 continues.'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
     test2:    # Anomaly|Non-Repeatable Read - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -330,19 +338,22 @@ mysql-tests:
 
     test3:    # Anomaly|Lost Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -351,38 +362,44 @@ mysql-tests:
 
     test4:    # Anomaly|Lost Update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
 
     test5:    # Anomaly|Ghost Update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -391,19 +408,22 @@ mysql-tests:
 
     test6:    # Anomaly|Phantom Update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -412,12 +432,14 @@ mysql-tests:
 
     test7:    # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -425,7 +447,8 @@ mysql-tests:
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
@@ -433,12 +456,14 @@ mysql-tests:
 
     test8:    # Anomaly|Read Skew - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -446,7 +471,8 @@ mysql-tests:
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
@@ -454,56 +480,67 @@ mysql-tests:
 
     test9:    # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T WHERE id=2;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
     test10:   # Anomaly|Write Skew - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT id,x FROM T WHERE id=2;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step4_T2:
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'COMMIT;;'
 
     test11:    # Anomaly|Ghost Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P 2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -512,19 +549,22 @@ mysql-tests:
 
     test12:    # Anomaly|Phantom Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction T2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- step 3. Session 1 continues after Transaction 2 committed'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -564,43 +604,51 @@ mysql-tests:
 postgres-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4 commits'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'COMMIT;;'
         step5_T1:
-            - '-- Step .5 T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
             
             
     test2:    # Anomaly|Non-Repeatable Read - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T WHERE id=1;;'
@@ -610,19 +658,22 @@ postgres-tests:
             
     test3:    # Anomaly|Lost update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -632,19 +683,22 @@ postgres-tests:
             
     test4:    # Anomaly|Lost update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -654,19 +708,22 @@ postgres-tests:
             
     test5:    # Anomaly|Ghost update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -675,19 +732,22 @@ postgres-tests:
             
     test6:    # Anomaly|Phantom update - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -698,12 +758,14 @@ postgres-tests:
             
     test7:    # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -711,7 +773,8 @@ postgres-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
@@ -719,12 +782,14 @@ postgres-tests:
 
     test8:    # Anomaly|Read Skew - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -732,7 +797,8 @@ postgres-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
@@ -741,29 +807,35 @@ postgres-tests:
             
     test9:    # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'           
             - 'SELECT id,x FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2, Transaction 2'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step6_T2:
-            - '-- Step 6. Session 2, Transaction 2'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'    
             - 'SELECT id,x FROM T ORDER BY id;;'
@@ -771,29 +843,35 @@ postgres-tests:
  
     test10:   # Anomaly|Write Skew - Isolation|Repeatable Read
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'           
             - 'SELECT id,x FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2, Transaction 2'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step6_T2:
-            - '-- Step 6. Session 2, Transaction 2'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'    
@@ -802,29 +880,35 @@ postgres-tests:
 
     test11:   # Anomaly|Write Skew - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'           
             - 'SELECT id,x FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2, Transaction 2'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step6_T2:
-            - '-- Step 6. Session 2, Transaction 2'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'    
@@ -833,19 +917,22 @@ postgres-tests:
 
     test12:   # Anomaly|Ghost update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -853,19 +940,22 @@ postgres-tests:
 
     test13:   # Anomaly|Phantom update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -874,36 +964,42 @@ postgres-tests:
 
     test14:    # Anomaly|Non-Repeatable Read - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
     test15:    # Anomaly|Lost update - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -911,38 +1007,44 @@ postgres-tests:
             - 'COMMIT;;'          
     test16:    # Anomaly|Ghost update - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
     test17:    # Anomaly|Phantom update - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -950,12 +1052,14 @@ postgres-tests:
             - 'COMMIT;;'
     test18:    # Anomaly|Read Skew - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -963,36 +1067,43 @@ postgres-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'           
     test19:    # Anomaly|Write Skew - Isolation|Serializable
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'           
             - 'SELECT id,x FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2, Transaction 2'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step6_T2:
-            - '-- Step 6. Session 2, Transaction 2'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'    
@@ -1002,78 +1113,93 @@ postgres-tests:
 sqlserver-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
         step4_T2:
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step5_T1:
-            - '-- Step 5. T1 of Session 1 cotinues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
     test2:    # Anomaly|Non-Repeatable Read - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
     test3:    # Anomaly|Lost Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
     test4:    # Anomaly|Lost Update - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=1;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
@@ -1082,19 +1208,22 @@ sqlserver-tests:
             
     test5:    # Anomaly|Ghost Update - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -1102,29 +1231,34 @@ sqlserver-tests:
             
     test6:    # Anomaly|Phantom Update - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'COMMIT;;'
     test7:    # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -1132,7 +1266,8 @@ sqlserver-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -1140,12 +1275,14 @@ sqlserver-tests:
          
     test8:    # Anomaly|Read Skew - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'UPDATE T SET x=12 WHERE id=1;;'
@@ -1153,35 +1290,42 @@ sqlserver-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
     test9:    # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2 continues'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=2) WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'            
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'         
         step6_T2:
-            - '-- Step 6. Session 2 continues'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
@@ -1189,64 +1333,76 @@ sqlserver-tests:
             
     test10:   # Anomaly|Write Skew - Isolation|Snapshot
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T WHERE id=2;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step4_T2:
-            - '-- Step 4. Session 2 continues'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'UPDATE T SET x=(SELECT x FROM T WHERE id=2) WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'            
         step5_T1:
-            - '-- Step 5. T1 of Session 1 continues'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'         
         step6_T2:
-            - '-- Step 6. Session 2 continues'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
     test11:    # Anomaly|Ghost Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'DELETE FROM T WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
     test12:    # Anomaly|Phantom Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in concurrent Session2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'COMMIT;;'
