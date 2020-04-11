@@ -88,10 +88,54 @@ YAML_FILE = "./mvcc_tests.yml"
 KEYS_ENTER = (curses.KEY_ENTER, ord('\n'), ord('\r'))
 KEYS_UP = (curses.KEY_UP, ord('k'))
 KEYS_DOWN = (curses.KEY_DOWN, ord('j'))
-TESTS_RUN_LINE = ['\nTests already run: ']
+TESTS_RUN_LINE = []
 EXIT_LINE = ['~ EXIT ~']
 WHICH_TESTS_RUN = []
 dbms = None
+
+def restart_dbms(dbms):
+    dbms_service = None
+    if "debian" in str(os.uname()):
+        if dbms == 'oracle':
+            dbms_service = 'oracle-xe'
+        elif dbms == 'postgres':
+            dbms_service = 'postgresql'
+        elif dbms == 'sqlserver':
+            dbms_service = 'mssql-server'
+        elif dbms == 'mysql':
+            dbms_service = 'mysql'
+
+    service_restart_command = 'sudo systemctl restart ' + dbms_service
+    subprocess.call(
+        ['x-terminal-emulator', '-title', 'Restarting ' + dbms + ' Please wait..', '-geometry',
+         '150x52', '-e', service_restart_command])
+
+def run_scenario(dbms, test_num, test_comment, yamlfile):
+    subprocess.call(
+        ['x-terminal-emulator', '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry',
+         '150x52', '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
+
+def test_selection_handler(self):
+    global WHICH_TESTS_RUN
+
+    selected_test = self.index + 1
+
+    if selected_test == len(self.options):  # last option, which must be 'EXIT PROGRAM'
+        sys.exit(1)
+
+    if selected_test == len(self.options) - 1:  # previous to last option, which must be 'Restart dbms service'
+        restart_dbms(dbms)
+        return
+
+    if selected_test not in WHICH_TESTS_RUN:
+        WHICH_TESTS_RUN = WHICH_TESTS_RUN + [selected_test]
+        WHICH_TESTS_RUN.sort()
+
+    test_num = 'test' + str(selected_test)
+
+    test_comment = find_comment(YAML_FILE, dbms, test_num)
+    run_scenario(dbms, test_num, test_comment, YAML_FILE)
+
 
 class Picker(object):
     """The :class:`Picker <Picker>` object
@@ -110,6 +154,7 @@ class Picker(object):
         self.options = options
         self.title = title
         self.indicator = indicator
+        self.callback = None
 
         if default_index >= len(options):
             raise ValueError('default_index should be less than the length of options')
@@ -156,6 +201,10 @@ class Picker(object):
         title_lines = self.get_title_lines()
         option_lines = self.get_option_lines()
 
+        if not len(WHICH_TESTS_RUN) == 0:
+            global TESTS_RUN_LINE
+            TESTS_RUN_LINE = ['\nTests already run: ']
+
         lines = title_lines + option_lines + TESTS_RUN_LINE
         current_line = self.index + len(title_lines) + 1
         return lines, current_line
@@ -188,7 +237,9 @@ class Picker(object):
                     self.screen.addnstr(y, x, line, max_x-2)
                 y += 1
 
-            self.screen.addstr(str(WHICH_TESTS_RUN))
+            if not len(WHICH_TESTS_RUN) == 0:
+                self.screen.addstr(str(WHICH_TESTS_RUN))
+
             self.screen.refresh()
         except:
             pass
@@ -205,7 +256,7 @@ class Picker(object):
                 if callback:
                     callback(self)
                 else:
-                    return
+                    return self.get_selected()
 
     def config_curses(self):
         try:
@@ -221,58 +272,14 @@ class Picker(object):
     def _start(self, screen):
         self.screen = screen
         self.config_curses()
-        return self.run_loop(callback)
+        return self.run_loop(self.callback)
 
-    def start(self):
+
+    def start(self, callback = None):
+        if callback:
+            self.callback = callback
+
         return curses.wrapper(self._start)
-
-# def pick(*args, **kwargs):
-#     picker = Picker(*args, **kwargs)
-#     return picker.start()
-
-def restart_dbms(dbms):
-    dbms_service = None
-    if "debian" in str(os.uname()):
-        if dbms == 'oracle':
-            dbms_service = 'oracle-xe'
-        elif dbms == 'postgres':
-            dbms_service = 'postgresql'
-        elif dbms == 'sqlserver':
-            dbms_service = 'mssql-server'
-        elif dbms == 'mysql':
-            dbms_service = 'mysql'
-
-    service_restart_command = 'sudo systemctl restart ' + dbms_service
-    subprocess.call(
-        ['x-terminal-emulator', '-title', 'Restarting ' + dbms + ' Please wait..', '-geometry',
-         '150x52', '-e', service_restart_command])
-
-
-def run_scenario(dbms, test_num, test_comment, yamlfile):
-    subprocess.call(
-        ['x-terminal-emulator', '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry',
-         '150x52', '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
-
-def callback(this):
-    global WHICH_TESTS_RUN
-
-    selected_test = this.index + 1
-
-    if selected_test == len(this.options):  # last option, which must be 'EXIT PROGRAM'
-        sys.exit(1)
-
-    if selected_test == len(this.options) - 1:  # previous to last option, which must be 'Restart dbms service'
-        restart_dbms(dbms)
-        return
-
-    if selected_test not in WHICH_TESTS_RUN:
-        WHICH_TESTS_RUN = WHICH_TESTS_RUN + [selected_test]
-        WHICH_TESTS_RUN.sort()
-
-    test_num = 'test' + str(selected_test)
-
-    test_comment = find_comment(YAML_FILE, dbms, test_num)
-    run_scenario(dbms, test_num, test_comment, YAML_FILE)
 
 
 
@@ -281,30 +288,32 @@ def main():
         global dbms
 
         if len(sys.argv) < 2:
-            input('Argument error \nMake sure you provide <dbms> and optionally <testNum>')
-            sys.exit(0)
-
-        if str(sys.argv[1]) in supported_dbms:
-            dbms = sys.argv[1]
-        else:
-            input('Invalid DBMS name!\nSupported DBMSs are: ' + str(supported_dbms))
-            sys.exit(0)
-
-        if not is_dbms_running(dbms):
-            input(dbms + ' is not running')
-            sys.exit(0)
+            picker = Picker(supported_dbms, 'Choose a dbms', '==>')
+            option, index = picker.start()
+            dbms = option
 
         if len(sys.argv) == 2:
-            comments = find_comments(YAML_FILE, dbms)
-            title = 'Choose a test to run in ' + dbms + ' dbms:'
-            restart_dbms = ['~ Restart ' + dbms + ' ~ (if an error occurs, restart the service and re-run the test)']
-            picker = Picker(comments + restart_dbms + EXIT_LINE, title)
-            picker.indicator = '==> '
-            picker.start()
-        else:
+            if str(sys.argv[1]) in supported_dbms:
+                dbms = sys.argv[1]
+            else:
+                print('Invalid DBMS name!\nSupported DBMSs are: ' + str(supported_dbms))
+                sys.exit(0)
+
+        if not is_dbms_running(dbms):
+            print(dbms + ' is not running')
+            sys.exit(0)
+
+        comments = find_comments(YAML_FILE, dbms)
+        title = 'Choose a test to run in ' + dbms + ' dbms:'
+        restart_dbms = ['~ Restart ' + dbms + ' ~ (if an error occurs, restart the service and re-run the test)']
+        picker = Picker(comments + restart_dbms + EXIT_LINE, title, '==>')
+        picker.start(test_selection_handler)
+
+        if len(sys.argv) == 3:
             test_num = sys.argv[2]
             test_comment = find_comment(YAML_FILE, dbms, test_num)
             run_scenario(dbms, test_num, test_comment, YAML_FILE)
+
     except KeyboardInterrupt:
         sys.exit(1)
     except:
