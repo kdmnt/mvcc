@@ -28,24 +28,35 @@ except Exception as err:
     print(str(err))
     time.sleep(1)
 
-try:
-    import apt
-    cache = apt.Cache()
-    if not cache['tmux'].is_installed:
-        print ("Seems like tmux is not installed.\nTrying to Install tmux...\n")
-        os.system('sudo apt-get install tmux=2.8-3')
-        print('\nScreen will now clear')
-        time.sleep(3)
-        os.system('clear')
-except ImportError as err:
-    print(str(err))
-    time.sleep(1)
+def installTmux():
+    try:
+        import apt
+        cache = apt.Cache()
+        if not cache['tmux'].is_installed:
+            print ("Seems like tmux is not installed.\nTrying to Install tmux...\n")
+            os.system('sudo apt-get install tmux=2.8-3')
+            print('\nScreen will now clear')
+            time.sleep(3)
+            os.system('clear')
+    except ImportError as err:
+        if 'No module named \'apt\'' in str(err):
+            print ('\nSeems like python3-apt is not installed')
+            print ('\nWill now try to install python3-apt ...\n')
+            time.sleep(3)
+            os.system('sudo apt-get install python3-apt')
+            time.sleep(3)
+            installTmux()
+        else:
+            print(str(err))
+            time.sleep(1)
+
+installTmux()
 
 try:
     import libtmux
 except ImportError as err:
     if 'libtmux' in str(err):
-        print "Trying to Install required module: libtmux\n"
+        print ("Trying to Install required module: libtmux\n")
         os.system('python -m pip install -Iv libtmux==0.8.2')
         print('\nScreen will now clear')
         time.sleep(3) 
@@ -57,13 +68,13 @@ except ImportError as err:
         print ("Trying to Install required module: yamlordereddictloader\n")
         os.system('python -m pip install -Iv yamlordereddictloader==0.4.0')
         print('\nScreen will now clear')
-        time.sleep(3)         
-        os.system('clear')  
+        time.sleep(3)
+        os.system('clear')
 try:
     import yaml
 except ImportError as err:
     if 'yaml' in str(err):
-        print "Trying to Install required module: yaml\n"
+        print ("Trying to Install required module: yaml\n")
         os.system('python -m pip install -Iv pyyaml=5.3.1')
         print('\nScreen will now clear')
         time.sleep(3)         
@@ -311,14 +322,14 @@ def create_tmux_window_and_panes():
         window.select_layout('even-horizontal')
 
         return tmux_panes
-    except BadSessionName,e:
+    except BadSessionName as e:
         print('Probably a comment in a test contains an invalid character like a colon (:) or a period (.)\n')
         time.sleep(0.3)
         print_dots(False)
         print('Error:' + str(e))
         input('\n\nPress Enter to exit...')
         sys.exit(0)
-    except Exception,e:
+    except Exception as e:
         time.sleep(0.3)
         print_dots(False)
         print('Error:' + str(e))
@@ -334,8 +345,8 @@ def initiate_connection(pane):
     while True:
         if time.time() - start_time > 16:
             print_dots(False)
-            print "\n15 seconds have passed, probably the host is unreachable.\n"
-            print "Check your yaml configuration file and make sure the service is running\n"
+            print ("\n15 seconds have passed, probably the host is unreachable.\n")
+            print ("Check your yaml configuration file and make sure the service is running\n")
             enter_pressed = input('\nPress Enter to exit..')
             if enter_pressed == "":
                 sys.exit(1)
@@ -389,13 +400,13 @@ def initiate_panes(panes):
             pane.send_keys(clear)
             pane.send_keys('')
 
-    except HostError, e:
+    except HostError as e:
         print_dots(False)
         input('\nUnknown host:\n' + str(e) + '\n\nPress Enter to exit..')
-    except DatabaseError, e:
+    except DatabaseError as e:
         print_dots(False)
         input('\nDatabase might not exist:\n' + str(e) + '\n\nPress Enter to exit..')
-    except AuthenticationError,e:
+    except AuthenticationError as e:
         print_dots(False)
         input('\nAuthentication Error trying to connect:\n' + str(e) + '\n\nPress Enter to exit..')
 
