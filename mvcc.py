@@ -116,7 +116,8 @@ def restart_dbms(dbms):
     service_restart_command = 'sudo systemctl restart ' + dbms_service
     subprocess.call(
         ['x-terminal-emulator', '-title', 'Restarting ' + dbms + ' Please wait..', '-geometry',
-         '150x52', '-e', service_restart_command])
+         '60x10', '-e', service_restart_command])
+
 
 def run_scenario(dbms, test_num, test_comment, yamlfile):
     subprocess.call(

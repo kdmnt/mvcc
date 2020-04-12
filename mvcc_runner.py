@@ -366,15 +366,21 @@ def execute_steps(tmux_panes):
 
 
 def run_tmux():
-    tmux_panes = create_tmux_window_and_panes()
+    try:
+        tmux_panes = create_tmux_window_and_panes()
 
-    initiate_panes(tmux_panes)
+        initiate_panes(tmux_panes)
 
-    execute_steps(tmux_panes)
+        execute_steps(tmux_panes)
 
-    print_dots(False)
-    time.sleep(0.5)
-    server.attach_session(target_session=session_name) # show tmux console
+        print_dots(False)
+        time.sleep(0.5)
+        server.attach_session(target_session=session_name) # show tmux console
+    except TypeError as err:
+        print_dots(False)
+        input('\nYou probably have a formatting error in the yaml file'
+              '\nPlease check the syntax, close this window and re-run the test\n'
+              '\nError: ' + str(err))
 
 
 def print_dots(keep_printing):
