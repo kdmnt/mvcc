@@ -6,6 +6,7 @@ import sys
 import subprocess
 import curses
 import importlib
+import site
 
 def installLibraries():
     try:
@@ -32,6 +33,7 @@ def installLibraries():
             print ("Trying to Install required module: libtmux\n")
             subprocess.check_call([sys.executable, "-m", "pip", "install", 'libtmux==0.8.2'])
             print('\nScreen will now clear')
+            reload(site)
             globals()['libtmux'] = importlib.import_module('libtmux')
             time.sleep(3)
             os.system('clear')
@@ -42,6 +44,7 @@ def installLibraries():
             print ("Trying to Install required module: yamlordereddictloader\n")
             subprocess.check_call([sys.executable, "-m", "pip", "install", 'yamlordereddictloader==0.4.0'])
             print('\nScreen will now clear')
+            reload(site)
             globals()['yamlordereddictloader'] = importlib.import_module('yamlordereddictloader')
             time.sleep(3)
             os.system('clear')
@@ -52,6 +55,7 @@ def installLibraries():
             print ("Trying to Install required module: yaml\n")
             subprocess.check_call([sys.executable, "-m", "pip", "install", 'pyyaml=5.3.1'])
             print('\nScreen will now clear')
+            reload(site)
             globals()['yaml'] = importlib.import_module('yaml')
             time.sleep(3)
             os.system('clear')
