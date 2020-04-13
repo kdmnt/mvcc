@@ -169,8 +169,8 @@ def prepare_connection():
         elif dbms == 'oracle':
             connection_string = str('sqlplus ' + user + '/' + password + '@' + host + '/' + db)
             clear = 'clear screen'
-            autocommit_off = 'autocommit off;;'
-            autocommit_on = 'autocommit on;;'
+            autocommit_off = 'set autocommit off;;'
+            autocommit_on = 'set autocommit on;;'
     else:
         input(dbms + ' is not running')
 
