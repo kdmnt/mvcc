@@ -219,75 +219,7 @@ oracle-tests:
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
-    test9:    # Anomaly|Write Skew - Isolation|Read Committed
-        step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'SELECT id,x FROM T WHERE id=2;;'
-        step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;' 
-            - 'SELECT id,x FROM T ORDER BY id;;'         
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'  
-            - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
-            
-    test10:   # Anomaly|Write Skew - Isolation|Serializable
-        step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT id,x FROM T WHERE id=2;;'
-        step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT x FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;' 
-            - 'SELECT id,x FROM T ORDER BY id;;'         
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'  
-            - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
-
-    test11:   # Anomaly|Ghost Update - Isolation|Read Committed
+    test9:   # Anomaly|Ghost Update - Isolation|Read Committed
         step1_T1:
             - '--   S T E P  1  --'
             - '-------------------'
@@ -308,7 +240,7 @@ oracle-tests:
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
-    test12:   # Anomaly|Phantom Update - Isolation|Read Committed
+    test10:   # Anomaly|Phantom Update - Isolation|Read Committed
         step1_T1:
             - '-- Step 1. Session 1, Transaction T1'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
@@ -325,7 +257,7 @@ oracle-tests:
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
-    test13: # KD's proper write skew example - Isolation|Read Committed
+    test11: # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
             - '--  TABLE INITIALIZATION  --'
             - '----------------------------'
@@ -375,7 +307,7 @@ oracle-tests:
             - '-------------------'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
-    test14: # KD's proper write skew example - Isolation|Serializable
+    test12: # Anomaly|Write Skew - Isolation|Serializable
         step1_T1:
             - '--  TABLE INITIALIZATION  --'
             - '----------------------------'
