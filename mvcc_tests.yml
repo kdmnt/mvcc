@@ -1566,7 +1566,6 @@ sqlserver-tests:
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM doctors;;'
-            - 'SELECT dbo.currently_on_call();'
         step2_T2:
             - '----   S T E P  2  ----'
             - 'ALTER DATABASE T SET READ_COMMITTED_SNAPSHOT ON;;'
@@ -1578,12 +1577,14 @@ sqlserver-tests:
             - '--   S T E P  3  --'
             - 'SELECT dbo.currently_on_call();'
             - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Alice' and shift_id=1234;;"
+            - 'GO' # used to make the terminal wait a little
             - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
         step4_T2:
             - '--   S T E P  4  --'
             - 'SELECT dbo.currently_on_call();'
             - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Bob' and shift_id=1234;;"
+            - 'GO' # used to make the terminal wait a little
             - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
 
@@ -1602,7 +1603,6 @@ sqlserver-tests:
             - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
             - 'BEGIN TRANSACTION;;'
             - 'SELECT * FROM doctors;;'
-            - 'SELECT dbo.currently_on_call();'
         step2_T2:
             - '----   S T E P  2  ----'
             - 'ALTER DATABASE T SET ALLOW_SNAPSHOT_ISOLATION ON;;'
@@ -1614,11 +1614,13 @@ sqlserver-tests:
             - '--   S T E P  3  --'
             - 'SELECT dbo.currently_on_call();'
             - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Alice' and shift_id=1234;;"
+            - 'GO' # used to make the terminal wait a little
             - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
         step4_T2:
             - '--   S T E P  4  --'
             - 'SELECT dbo.currently_on_call();'
             - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Bob' and shift_id=1234;;"
+            - 'GO' # used to make the terminal wait a little
             - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
