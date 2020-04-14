@@ -290,9 +290,6 @@ oracle-tests:
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM doctors;;'
-            - 'var doctors_on_call number;;'
-            - 'exec currently_on_call(:doctors_on_call);;'
-            - 'print :doctors_on_call;;'
         step3_T1:
             - '--   S T E P  3  --'
             - '-------------------'
@@ -302,9 +299,12 @@ oracle-tests:
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
+            - 'var doctors_on_call number;;'
+            - 'exec currently_on_call(:doctors_on_call);;'
+            - 'print :doctors_on_call;;'
             - "UPDATE doctors SET on_call = CASE WHEN :doctors_on_call >= 2 THEN 'false' ELSE 'true' END WHERE name = 'Bob' and shift_id=1234;;"
-            - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
+            - 'SELECT * FROM doctors;;'
         step5_T1:
             - '--   S T E P  5  --'
             - '-------------------'
@@ -348,9 +348,6 @@ oracle-tests:
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM doctors;;'
-            - 'var doctors_on_call number;;'
-            - 'exec currently_on_call(:doctors_on_call);;'
-            - 'print :doctors_on_call;;'
         step3_T1:
             - '--   S T E P  3  --'
             - '-------------------'
@@ -360,9 +357,12 @@ oracle-tests:
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
+            - 'var doctors_on_call number;;'
+            - 'exec currently_on_call(:doctors_on_call);;'
+            - 'print :doctors_on_call;;'
             - "UPDATE doctors SET on_call = CASE WHEN :doctors_on_call >= 2 THEN 'false' ELSE 'true' END WHERE name = 'Bob' and shift_id=1234;;"
-            - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
+            - 'SELECT * FROM doctors;;'
         step5_T1:
             - '--   S T E P  5  --'
             - '-------------------'
@@ -644,8 +644,6 @@ mysql-tests:
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM doctors;;'
-            - 'CALL currently_on_call(@doctors_on_call);;'
-            - 'SELECT @doctors_on_call;;'
         step3_T1:
             - '--   S T E P  3  --'
             - '-------------------'
@@ -655,16 +653,14 @@ mysql-tests:
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
+            - 'CALL currently_on_call(@doctors_on_call);;'
+            - 'SELECT @doctors_on_call;;'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Bob" and shift_id = 1234;;'
+            - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
         step5_T1:
             - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT * FROM doctors;;'
-            - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
             - '-------------------'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
@@ -696,8 +692,6 @@ mysql-tests:
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM doctors;;'
-            - 'CALL currently_on_call(@doctors_on_call);;'
-            - 'SELECT @doctors_on_call;;'
         step3_T1:
             - '--   S T E P  3  --'
             - '-------------------'
@@ -707,16 +701,14 @@ mysql-tests:
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
+            - 'CALL currently_on_call(@doctors_on_call);;'
+            - 'SELECT @doctors_on_call;;'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Bob" and shift_id = 1234;;'
+            - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
         step5_T1:
             - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT * FROM doctors;;'
-            - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
             - '-------------------'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
@@ -1559,80 +1551,74 @@ sqlserver-tests:
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'COMMIT;;'
 
-    test13: # KD's test proper write skew example - Isolation|Read Committed
+    test13: # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
             - '----  TABLE INITIALIZATION  ----'
-            - 'SET LOCK_TIMEOUT 0;;'
-            - "DROP TABLE IF EXISTS T;;"
-            - 'CREATE TABLE T (id INT NOT NULL PRIMARY KEY, x INT, y INT, CHECK (x+y<100));;'
-            - 'INSERT INTO T VALUES (1, 1, 1);;'
-            - 'INSERT INTO T VALUES (2, 2, 2);;'
-            - 'INSERT INTO T VALUES (3, 3, 3);;'
-            - 'COMMIT;;'
+            - "DROP TABLE doctors;;"
+            - 'DROP FUNCTION IF EXISTS currently_on_call;;'
+            - 'CREATE TABLE doctors ( name VARCHAR (10), on_call VARCHAR (10), shift_id INT);;'
+            - "INSERT INTO doctors VALUES ('Alice', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Bob', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
+            - 'CREATE FUNCTION currently_on_call() RETURNS int AS BEGIN RETURN (SELECT COUNT(*) FROM doctors where on_call = "true" and shift_id=1234); END;;'
             - '----   S T E P  1  ----'
+            - 'ALTER DATABASE T SET READ_COMMITTED_SNAPSHOT ON;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN TRANSACTION;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors;;'
+            - 'SELECT dbo.currently_on_call();'
         step2_T2:
             - '----   S T E P  2  ----'
-            - 'SET LOCK_TIMEOUT 0;;'
+            - 'ALTER DATABASE T SET READ_COMMITTED_SNAPSHOT ON;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
+            - 'SET LOCK_TIMEOUT 0;;'
             - 'BEGIN TRANSACTION;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors;;'
         step3_T1:
-            - '----   S T E P  3  ----'
-            - 'UPDATE T SET x=60 WHERE id=1;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - '--   S T E P  3  --'
+            - 'SELECT dbo.currently_on_call();'
+            - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Alice' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors;;'
         step4_T2:
-            - '----   S T E P  4  ----'
-            - 'UPDATE T SET y=60 WHERE id=1;;'
-            - 'SELECT * FROM T WHERE id=1;;'
-        step5_T1:
-            - '----   S T E P  5  ----'
+            - '--   S T E P  4  --'
+            - 'SELECT dbo.currently_on_call();'
+            - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Bob' and shift_id=1234;;"
             - 'COMMIT;;'
-        step6_T2:
-            - '----   S T E P  6  ----'
-            - 'COMMIT;;'
-            - 'SELECT * FROM T WHERE id=1;;'
-        step7_T1:
-            - '----   S T E P  7  ----'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors;;'
 
-    test14: # KD's test proper write skew example - Isolation|Snapshot
-            step1_T1:
-                - '----  TABLE INITIALIZATION  ----'
-                - 'SET LOCK_TIMEOUT 0;;'
-                - "DROP TABLE IF EXISTS ;;"
-                - 'CREATE TABLE T (id INT NOT NULL PRIMARY KEY, x INT, y INT, CHECK (x+y<100));;'
-                - 'INSERT INTO T VALUES (1, 1, 1);;'
-                - 'INSERT INTO T VALUES (2, 2, 2);;'
-                - 'INSERT INTO T VALUES (3, 3, 3);;'
-                - 'COMMIT;;'
-                - '--   S T E P  1  --'
-                - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
-                - 'BEGIN TRANSACTION;;'
-                - 'SELECT * FROM T WHERE id=1;;'
-            step2_T2:
-                - '----   S T E P  2  ----'
-                - 'SET LOCK_TIMEOUT 0;;'
-                - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
-                - 'BEGIN TRANSACTION;;'
-                - 'SELECT * FROM T WHERE id=1;;'
-            step3_T1:
-                - '----   S T E P  3  ----'
-                - 'UPDATE T SET x=60 WHERE id=1;;'
-                - 'SELECT * FROM T WHERE id=1;;'
-            step4_T2:
-                - '----   S T E P  4  ----'
-                - 'UPDATE T SET y=60 WHERE id=1;;'
-                - 'SELECT * FROM T WHERE id=1;;'
-            step5_T1:
-                - '----   S T E P  5  ----'
-                - 'COMMIT;;'
-            step6_T2:
-                - '----   S T E P  6  ----'
-                - 'COMMIT;;'
-                - 'SELECT * FROM T WHERE id=1;;'
-            step7_T1:
-                - '----   S T E P  7  ----'
-                - 'SELECT * FROM T WHERE id=1;;'
+    test14: # Anomaly|Write Skew - Isolation|Snapshot
+        step1_T1:
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE doctors;;"
+            - 'DROP FUNCTION IF EXISTS currently_on_call;;'
+            - 'CREATE TABLE doctors ( name VARCHAR (10), on_call VARCHAR (10), shift_id INT);;'
+            - "INSERT INTO doctors VALUES ('Alice', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Bob', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
+            - 'CREATE FUNCTION currently_on_call() RETURNS int AS BEGIN RETURN (SELECT COUNT(*) FROM doctors where on_call = "true" and shift_id=1234); END;;'
+            - '----   S T E P  1  ----'
+            - 'ALTER DATABASE T SET ALLOW_SNAPSHOT_ISOLATION ON;;'
+            - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM doctors;;'
+            - 'SELECT dbo.currently_on_call();'
+        step2_T2:
+            - '----   S T E P  2  ----'
+            - 'ALTER DATABASE T SET ALLOW_SNAPSHOT_ISOLATION ON;;'
+            - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
+            - 'SET LOCK_TIMEOUT 0;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM doctors;;'
+        step3_T1:
+            - '--   S T E P  3  --'
+            - 'SELECT dbo.currently_on_call();'
+            - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Alice' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors;;'
+        step4_T2:
+            - '--   S T E P  4  --'
+            - 'SELECT dbo.currently_on_call();'
+            - "IF dbo.currently_on_call() >= 2 UPDATE doctors SET on_call = 'false' WHERE name = 'Bob' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors;;'
