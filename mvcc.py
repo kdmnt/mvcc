@@ -325,7 +325,8 @@ def main():
 
     except KeyboardInterrupt:
         sys.exit(1)
-    except:
+    except Exception as err:
+        input(str(err))
         sys.exit(0)
 
 if __name__== "__main__":

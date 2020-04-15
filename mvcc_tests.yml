@@ -177,47 +177,67 @@ oracle-tests:
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
             
-    test7:    # Anomaly|Read Skew - Isolation|Read Committed
+    test7: # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'COMMIT;;'
+            - '----   S T E P  1  ----'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'
-            - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            
-    test8:    # Anomaly|Read Skew - Isolation|Serializable
+            - 'SELECT * from accounts;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
+
+    test8: # Anomaly|Read Skew - Isolation|Serializable
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'COMMIT;;'
+            - '----   S T E P  1  ----'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'
-            - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  2  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SELECT * from accounts;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
 
     test9:   # Anomaly|Ghost Update - Isolation|Read Committed
         step1_T1:
@@ -375,6 +395,7 @@ oracle-tests:
             - 'COMMIT;;'
 
 
+
 mysql-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed
         step1_T1:
@@ -521,52 +542,74 @@ mysql-tests:
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
-    test7:    # Anomaly|Read Skew - Isolation|Read Committed
+    test7: # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'COMMIT;;'
+            - '----   S T E P  1  ----'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * from accounts;;'
+            - 'COMMIT;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
 
-    test8:    # Anomaly|Read Skew - Isolation|Repeatable Read
+    test8: # Anomaly|Read Skew - Isolation|Repeatable Read
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'COMMIT;;'
+            - '----   S T E P  1  ----'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
+            - '----   S T E P  2  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * from accounts;;'
+            - 'COMMIT;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
 
     test9:    # Anomaly|Ghost Update - Isolation|Read Committed
@@ -900,55 +943,77 @@ postgres-tests:
             
             
             
-    test7:    # Anomaly|Read Skew - Isolation|Read Committed
+    test7: # Anomaly|Read Skew - Isolation|Read Committed
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'SELECT * FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'            
-            - 'SELECT * FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * from accounts;;'
+            - 'COMMIT;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
 
-    test8:    # Anomaly|Read Skew - Isolation|Repeatable Read
+    test8: # Anomaly|Read Skew - Isolation|Repeatable Read
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
-            - 'SELECT * FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
             - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'            
-            - 'SELECT * FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * from accounts;;'
             - 'COMMIT;;'
-            
-            
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
+            - 'COMMIT;;'
     test9:    # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
             - '--   S T E P  1  --'
@@ -1194,29 +1259,41 @@ postgres-tests:
             - 'COMMIT;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
-    test18:    # Anomaly|Read Skew - Isolation|Serializable
+    test18: # Anomaly|Read Skew - Isolation|Serializable
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT * FROM T ORDER BY id;;'
+            - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
             - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'UPDATE T SET x=12 WHERE id=1;;'
-            - 'UPDATE T SET x=22 WHERE id=2;;'            
-            - 'SELECT * FROM T ORDER BY id;;'
-            - 'COMMIT;;'
+            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
+            - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'           
+            - 'SELECT * from accounts;;'
+            - 'COMMIT;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
+            - 'COMMIT;;'
     test19:    # Anomaly|Write Skew - Isolation|Serializable
         step1_T1:
             - '--   S T E P  1  --'
@@ -1624,3 +1701,69 @@ sqlserver-tests:
             - 'GO' # used to make the terminal wait a little
             - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
+
+    test15: # Anomaly|Read Skew - Isolation|Read Committed
+        step1_T1:
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'ALTER DATABASE T SET READ_COMMITTED_SNAPSHOT ON;;'
+            - '----   S T E P  1  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM accounts;;'
+        step2_T2:
+            - '----   S T E P  2  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM accounts;;'
+        step3_T1:
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
+            - 'COMMIT;;'
+            - 'SELECT * from accounts;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
+
+    test16: # Anomaly|Read Skew - Isolation|Snapshot
+        step1_T1:
+            - '----  TABLE INITIALIZATION  ----'
+            - "DROP TABLE accounts;;"
+            - 'CREATE TABLE accounts ( account_id INT NOT NULL PRIMARY KEY, balance INT);;'
+            - "INSERT INTO accounts VALUES (1, 500);;"
+            - "INSERT INTO accounts VALUES (2, 500);;"
+            - 'ALTER DATABASE T SET ALLOW_SNAPSHOT_ISOLATION ON;;'
+            - '----   S T E P  1  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM accounts;;'
+        step2_T2:
+            - '----   S T E P  2  ----'
+            - 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT;;'
+            - 'BEGIN TRANSACTION;;'
+            - 'SELECT * FROM accounts;;'
+        step3_T1:
+            - '----   S T E P  3  ----'
+            - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
+            - 'SELECT * FROM accounts;;'
+        step4_T2:
+            - '----   S T E P  4  ----'
+            - 'SELECT balance from accounts WHERE account_id = 2;;'
+        step5_T1:
+            - '----   S T E P  5  ----'
+            - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
+            - 'COMMIT;;'
+            - 'SELECT * from accounts;;'
+        step6_T2:
+            - '----   S T E P  6  ----'
+            - 'SELECT balance from accounts WHERE account_id = 1;;'
