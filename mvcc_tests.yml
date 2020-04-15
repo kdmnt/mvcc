@@ -1016,113 +1016,108 @@ postgres-tests:
             - 'COMMIT;;'
     test9:    # Anomaly|Write Skew - Isolation|Read Committed
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '--------------------------------'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE IF EXISTS doctors;;"
+            - 'DROP FUNCTION IF EXISTS currently_on_call;;'
+            - 'CREATE TABLE doctors ( name VARCHAR (10), on_call VARCHAR (10), shift_id INT);;'
+            - "INSERT INTO doctors VALUES ('Alice', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Bob', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
+            - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'           
-            - 'SELECT id,x FROM T WHERE id=2;;'
+            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'    
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'                        
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
+            - 'COMMIT;;'
+        step4_T2:
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
+            - 'COMMIT;;'
  
-    test10:   # Anomaly|Write Skew - Isolation|Repeatable Read
+    test10:    # Anomaly|Write Skew - Isolation|Repeatable Read
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '--------------------------------'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE IF EXISTS doctors;;"
+            - 'DROP FUNCTION IF EXISTS currently_on_call;;'
+            - 'CREATE TABLE doctors ( name VARCHAR (10), on_call VARCHAR (10), shift_id INT);;'
+            - "INSERT INTO doctors VALUES ('Alice', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Bob', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
+            - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'           
-            - 'SELECT id,x FROM T WHERE id=2;;'
+            - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'    
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
+            - 'COMMIT;;'
+        step4_T2:
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
             - 'COMMIT;;'
 
-    test11:   # Anomaly|Write Skew - Isolation|Serializable
+    test11:    # Anomaly|Write Skew - Isolation|Serializable
         step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
+            - '----  TABLE INITIALIZATION  ----'
+            - '--------------------------------'
+            - '\set AUTOCOMMIT on'
+            - "DROP TABLE IF EXISTS doctors;;"
+            - 'DROP FUNCTION IF EXISTS currently_on_call;;'
+            - 'CREATE TABLE doctors ( name VARCHAR (10), on_call VARCHAR (10), shift_id INT);;'
+            - "INSERT INTO doctors VALUES ('Alice', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Bob', 'true', 1234);;"
+            - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
+            - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
+            - '\set AUTOCOMMIT off'
+            - '----   S T E P  1  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
+            - '----   S T E P  2  ----'
+            - '-----------------------'
             - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'           
-            - 'SELECT id,x FROM T WHERE id=2;;'
+            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'    
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'                                    
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
+            - 'COMMIT;;'
+        step4_T2:
+            - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
+            - 'COMMIT;;'
+            - 'SELECT * FROM doctors ORDER BY name ASC;;'
+            - 'COMMIT;;'
 
     test12:   # Anomaly|Ghost update - Isolation|Read Committed
         step1_T1:
@@ -1294,42 +1289,7 @@ postgres-tests:
             - '----   S T E P  6  ----'
             - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
-    test19:    # Anomaly|Write Skew - Isolation|Serializable
-        step1_T1:
-            - '--   S T E P  1  --'
-            - '-------------------'
-            - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'SELECT * FROM T WHERE id=1;;'
-        step2_T2:
-            - '--   S T E P  2  --'
-            - '-------------------'
-            - 'BEGIN TRANSACTION;;'
-            - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'           
-            - 'SELECT id,x FROM T WHERE id=2;;'
-        step3_T1:
-            - '--   S T E P  3  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=1) WHERE id=2;;'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step4_T2:
-            - '--   S T E P  4  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-        step5_T1:
-            - '--   S T E P  5  --'
-            - '-------------------'
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'
-        step6_T2:
-            - '--   S T E P  6  --'
-            - '-------------------'
-            - 'UPDATE T SET x=(SELECT X FROM T WHERE id=2) WHERE id=1;;'          
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'    
-            - 'SELECT id,x FROM T ORDER BY id;;'
-            - 'COMMIT;;'                          
+
 
 sqlserver-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed
