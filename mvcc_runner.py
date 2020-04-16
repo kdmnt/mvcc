@@ -358,6 +358,7 @@ def execute_steps(tmux_panes):
             pane.send_keys(transaction_steps)   # execute the transaction's steps
             if dbms == 'sqlserver':
                 pane.send_keys('GO')
+                time.sleep(0.1)
 
 
         transaction = current_Transaction

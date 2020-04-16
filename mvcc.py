@@ -125,26 +125,29 @@ def run_scenario(dbms, test_num, test_comment, yamlfile):
          '150x52', '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
 
 def test_selection_handler(self):
-    global WHICH_TESTS_RUN
+    try:
+        global WHICH_TESTS_RUN
 
-    selected_test = self.index + 1
+        selected_test = self.index + 1
 
-    if selected_test == len(self.options):  # last option, which must be 'EXIT PROGRAM'
-        sys.exit(1)
+        if selected_test == len(self.options):  # last option, which must be 'EXIT PROGRAM'
+            sys.exit(1)
 
-    if selected_test == len(self.options) - 1:  # previous to last option, which must be 'Restart dbms service'
-        restart_dbms(dbms)
-        return
+        if selected_test == len(self.options) - 1:  # previous to last option, which must be 'Restart dbms service'
+            restart_dbms(dbms)
+            return
 
-    if selected_test not in WHICH_TESTS_RUN:
-        WHICH_TESTS_RUN = WHICH_TESTS_RUN + [selected_test]
-        WHICH_TESTS_RUN.sort()
+        if selected_test not in WHICH_TESTS_RUN:
+            WHICH_TESTS_RUN = WHICH_TESTS_RUN + [selected_test]
+            WHICH_TESTS_RUN.sort()
 
-    test_num = 'test' + str(selected_test)
+        test_num = 'test' + str(selected_test)
 
-    test_comment = find_comment(YAML_FILE, dbms, test_num)
-    run_scenario(dbms, test_num, test_comment, YAML_FILE)
-
+        test_comment = find_comment(YAML_FILE, dbms, test_num)
+        run_scenario(dbms, test_num, test_comment, YAML_FILE)
+    except Exception as err:
+        input(str(err))
+        sys.exit(0)
 
 class Picker(object):
     """The :class:`Picker <Picker>` object
