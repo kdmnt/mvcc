@@ -1,5 +1,15 @@
 #!/usr/bin/python
-#-*-coding:utf-8-*-
+"""
+Opens a tmux session in the current terminal
+and executes the test scenario's steps.
+
+To run:
+$ python mvcc_runner.py <dbms> <test_num> <yaml_file_path>
+e.g.( python mvcc_runner.py oracle test1 "./mvcc_tests.yml" )
+------------------------------------------------------------------------------
+Author: Konstantinos Diamantidis - March 2020
+------------------------------------------------------------------------------
+"""
 import os
 import termios
 import sys
@@ -27,19 +37,21 @@ class HostError(Exception):
 
 
 DBMS, CONNECTION_STRING, USER, PASSWORD, DB, HOST, \
-    CONFIG_TABLE_INITIALIZATION, CONFIG_DBMS_STEPS, CLEAR_COMMAND, \
-    TEST_NUM, TEST_COMMENT, NUMBER_OF_TRANSACTIONS, \
-    TMUX_SERVER, TMUX_SESSION_NAME = (None,) * 14
+    CONFIG_TABLE_INITIALIZATION, CONFIG_DBMS_STEPS, \
+    CLEAR_COMMAND, AUTOCOMMIT_ON, AUTOCOMMIT_OFF, \
+    YAML_FILE, TEST_NUM, TEST_COMMENT, NUMBER_OF_TRANSACTIONS, \
+    TMUX_SERVER, TMUX_SESSION_NAME = (None,) * 17
 SUPPORTED_DBMS = ['oracle', 'mysql', 'postgres', 'sqlserver']
 KEEP_PRINTING_DOTS = False
-YAML_FILE = None
-AUTOCOMMIT_ON = None
-AUTOCOMMIT_OFF = None
 FILE_DESCRIPTOR = sys.stdin.fileno()
 NORMAL_TERMINAL = termios.tcgetattr(FILE_DESCRIPTOR)
 
 
 def validate_arguments():
+    """Validates that the arguments provided are of the correct number
+    and that the dbms argument provided is one of the supported ones.
+    Test number and yaml file path validation will occur in the parse_yaml function
+    """
     global DBMS, TEST_NUM, YAML_FILE
 
     if len(sys.argv) < 4:
@@ -57,12 +69,23 @@ def validate_arguments():
 
 
 def parse_yaml(file_path):
+    """
+    Will load the provided yaml file.
+    Will set some global variables based on the parsed yaml file.
+
+    :param file_path: path of the yaml file
+    :return: the loaded yaml file
+    """
     try:
         with open(file_path, 'r') as ymlfile:
+            # yamlordereddictloader is needed so as to
+            # be sure that tests and steps are parsed sorted
+            # so as to get printed sorted in the terminal window
             yaml_file = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
-        global USER, PASSWORD, DB, HOST, CONFIG_TABLE_INITIALIZATION, \
-            CONFIG_DBMS_STEPS, TEST_COMMENT, NUMBER_OF_TRANSACTIONS
+        global USER, PASSWORD, DB, HOST, \
+                CONFIG_TABLE_INITIALIZATION, CONFIG_DBMS_STEPS, \
+                TEST_COMMENT, NUMBER_OF_TRANSACTIONS
 
         USER = yaml_file[DBMS + '-config']['user']
         PASSWORD = yaml_file[DBMS + '-config']['password']
@@ -74,9 +97,12 @@ def parse_yaml(file_path):
 
         transactions = []
         for steps in CONFIG_DBMS_STEPS:
+            # steps[-2:] will be e.g.: 'T1' from step3_T1
             if steps[-2:] not in transactions:
+                # will fill the list with the unique T1, T2, T3
                 transactions.append(steps[-2:])
-
+        # will be used for splitting the tmux session
+        # into the appropriate panes
         NUMBER_OF_TRANSACTIONS = len(transactions)
 
         return yaml_file
@@ -90,15 +116,27 @@ def parse_yaml(file_path):
         print('\nError in whitespace, no tabs should be used. '
               'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
     except ParserError as err:
         print('\nError in tests/steps. '
               'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
 
 
 def find_comment(file_path, dbms, test_num):
+    """
+    Will return the comment next to the provided test number.
+    e.g.: from "test4:    # Anomaly|Lost Update - Isolation|Serializable"
+    it will return "# Anomaly|Lost Update - Isolation|Serializable"
+
+    This will be used in the terminal window title.
+
+    :param file_path: yaml file path
+    :param dbms: 'oracle' | 'mysql' | 'postgres' | 'sqlserver'
+    :param test_num: e.g. 'test2'
+    :return: comment next to test number
+    """
     try:
         with open(file_path, 'r') as ymlfile:
             line_num_dbms = 1000000
@@ -115,20 +153,30 @@ def find_comment(file_path, dbms, test_num):
             return commentLine[commentLine.find('#'):None]
     except IOError as err:
         print('Wrong yaml file path: \n'+str(err))
-        sys.exit()
+        sys.exit(0)
     except ScannerError as err:
         print('\nError in whitespace, no tabs should be used. '
               'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
     except ParserError as err:
         print('\nError in tests/steps. '
               'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
 
 
 def find_comments(file_path, dbms):
+    """
+    Will return a list of the comments next to each test scenario.
+
+    These will be used in the menu from which the user
+    can select the test scenario to be executed.
+
+    :param file_path: yaml file path
+    :param dbms: 'oracle' | 'mysql' | 'postgres' | 'sqlserver'
+    :return: list of comments next to test scenarios
+    """
     try:
         tests = []
 
@@ -145,20 +193,21 @@ def find_comments(file_path, dbms):
         sys.exit(0)
     except IOError as err:
         print('Wrong yaml file path: \n'+str(err))
-        sys.exit()
+        sys.exit(0)
     except ScannerError as err:
         print('\nError in whitespace, no tabs should be used. '
               'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
     except ParserError as err:
         print('\nError in tests/steps. '
               'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
-        sys.exit()
+        sys.exit(0)
 
 
 def prepare_connection():
+    """Checks fills global variables with values based on the selected DBMS."""
     global CONNECTION_STRING, CLEAR_COMMAND
     global AUTOCOMMIT_ON, AUTOCOMMIT_OFF
     if is_dbms_running(DBMS):
@@ -203,6 +252,7 @@ def prepare_connection():
 
 
 def is_dbms_running(dbms):
+    """Checks if selected DBMS service is running"""
     dbms_service = None
     if "debian" in str(os.uname()):
         if dbms == 'oracle':
@@ -222,6 +272,8 @@ def is_dbms_running(dbms):
 
 
 def check_connection(connection_result, connection_string):
+    """Checks connection output and determines
+    if connection is established or if an error occurred"""
     # concatenate the error messages from a list to a string
     connection_result_string = ' '.join([str(elem) for elem in connection_result])
 
@@ -252,6 +304,8 @@ def check_connection(connection_result, connection_string):
         if auth_error in connection_result_string:
             raise AuthenticationError(connection_string)
 
+    # these are the success prompts in
+    # sqlserver | postgres | mysql | oracle
     success = ['1>', '=#', ']>', '>']
     for db_success in success:
         if db_success in connection_result_string:
@@ -261,6 +315,12 @@ def check_connection(connection_result, connection_string):
 
 
 def create_tmux_window_and_panes():
+    """
+    Initiates the tmux server, the window session
+    and creates the appropriate number of panes (up to 3).
+
+    :return: tmux panes objects in a list
+    """
     try:
         global TMUX_SERVER, TMUX_SESSION_NAME
         TMUX_SERVER = libtmux.Server()
@@ -307,10 +367,18 @@ def create_tmux_window_and_panes():
 
 
 def initiate_connection(pane):
+    """
+    Initiates the dbms connection in the provided pane.
+
+    :param pane: tmux pane in which the dbms connection will take place
+    :return:
+    """
     pane.send_keys(CONNECTION_STRING)
 
     start_time = time.time()
 
+    # try to connect until connection is establsished
+    # will try for 15 seconds, then execution will stop
     while True:
         if time.time() - start_time > 16:
             print_dots(False)
@@ -322,6 +390,9 @@ def initiate_connection(pane):
                 sys.exit(1)
 
         time.sleep(0.5)
+        # capture the attempt output
+        # so as to check if connection is successful
+        # or if an error occurred
         output = pane.capture_pane()
         connected = check_connection(output, CONNECTION_STRING)
         if not connected:
@@ -331,6 +402,14 @@ def initiate_connection(pane):
 
 
 def initiate_panes(panes):
+    """
+    Initializes the dbms connections and
+    re-initializes the tables as per the
+    table initialization section in the yaml file.
+
+    :param panes: tmux panes
+    :return: None
+    """
     try:
         print('Connecting to ' + DBMS)
 
@@ -361,7 +440,7 @@ def initiate_panes(panes):
 
         panes[0].send_keys(AUTOCOMMIT_OFF)
 
-        # so as to show only the Transaction relevant data in the console
+        # clear so as to show only the Transaction relevant data in the console
         panes[0].send_keys(CLEAR_COMMAND)
         panes[0].send_keys('')
 
@@ -371,8 +450,6 @@ def initiate_panes(panes):
         next(iter_panes)
 
         for pane in iter_panes:
-            # pane.send_keys(connection_string)
-            # time.sleep(2)
             initiate_connection(pane)
             pane.send_keys(AUTOCOMMIT_OFF)
             pane.send_keys(CLEAR_COMMAND)
@@ -393,23 +470,34 @@ def initiate_panes(panes):
 
 
 def execute_steps(tmux_panes):
+    """
+    Executes the steps from the selected dbms's
+    test scenario in the appropriate pane.
+
+    :param tmux_panes: all the tmux panes
+    :return: None
+    """
     transaction = 'T1'
     pane = None
     print ('\nExecuting test ' + TEST_COMMENT)
     for steps in CONFIG_DBMS_STEPS:
-        current_transaction = steps[-2:]    # last two characters (e.g. 'T2' from 'step2_T2')
+        # last two characters (e.g. 'T2' from 'step2_T2')
+        current_transaction = steps[-2:]
         if transaction != current_transaction:
-            time.sleep(1)   # wait 1 second after switching transaction
-
+            # wait 1 second after switching transaction
+            time.sleep(1)
         if steps[-2:] == 'T1':
-            pane = tmux_panes[0]    # use the proper pane, depending on the Transaction
+            # use the proper pane, depending on the Transaction
+            pane = tmux_panes[0]
         elif steps[-2:] == 'T2':
-            pane = tmux_panes[-1]   # the pervious to last element of the list
+            # the previous to last element of the list
+            pane = tmux_panes[-1]
         elif steps[-2:] == 'T3':
             pane = tmux_panes[1]
 
         for transaction_steps in CONFIG_DBMS_STEPS[steps]:
-            pane.send_keys(transaction_steps)   # execute the transaction's steps
+            # execute the transaction's steps
+            pane.send_keys(transaction_steps)
             if DBMS == 'sqlserver':
                 pane.send_keys('GO')
                 time.sleep(0.1)
@@ -420,6 +508,7 @@ def execute_steps(tmux_panes):
 
 
 def run_tmux():
+    """The "main" function of the tmux feature."""
     try:
         tmux_panes = create_tmux_window_and_panes()
 
@@ -440,6 +529,14 @@ def run_tmux():
 
 
 def print_dots(keep_printing):
+    """
+    Prints dot's in the terminal window.
+    Used while waiting for the dbms connection and
+    during the test steps' execution.
+
+    :param keep_printing: True/False
+    :return: None
+    """
     global KEEP_PRINTING_DOTS
     KEEP_PRINTING_DOTS = keep_printing
 
@@ -453,6 +550,15 @@ def print_dots(keep_printing):
 
 
 def hide_user_input(hide):
+    """
+    Does not show keystrokes in the temrinal.
+    Used while waiting for the dbms connection and
+    during the test steps' execution, so as to have
+    a cleaner output.
+
+    :param hide: True/False
+    :return: None
+    """
     no_input_terminal = termios.tcgetattr(FILE_DESCRIPTOR)
     no_input_terminal[3] = no_input_terminal[3] & ~termios.ECHO  # lflags
     if hide:
@@ -477,6 +583,8 @@ def main():
     print_dots(True)
 
     thread_tmux.join()
+    hide_user_input(False)
+
 
 if __name__ == "__main__":
     main()

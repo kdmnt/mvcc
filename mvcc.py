@@ -1,22 +1,64 @@
 #!/usr/bin/python
-#-*-coding:utf-8-*-
+"""
+User chooses preferred DBMS and test scenario,
+a tmux window opens and the transaction steps run in the specified order.
+Transaction steps are to be found in mvcc_tests.yml file.
+Up to three concurrent transactions are supported.
+Supported DBMSs are: MySQL | Oracle | SQL Server | PostgreSQL
+
+Can run in the following ways:
+
+1.  $ python mvcc.py
+    It will open a menu to choose DBMS and then
+    a menu to choose test scenario for the selected DBMS.
+    After choosing a test scenario, a tmux window will open
+    which will run the test steps. First window will persist.
+2.  $ python mvcc.py <dbms>
+    It will open a menu to choose from the DBMS's test scenarios.
+    After choosing a test scenario, a tmux window will open
+    which will run the test steps. First window will persist.
+3.  $ python mvcc.py <dbms> <test_num>
+    A tmux window will open which will run the test steps.
+------------------------------------------------------------------------------
+Author: Konstantinos Diamantidis - March 2020
+------------------------------------------------------------------------------
+"""
+
+
 import time
 import os
 import sys
 import subprocess
 import curses
-import importlib
-import site
 from mvcc_runner import find_comment
 from mvcc_runner import find_comments
 from mvcc_runner import is_dbms_running
 from mvcc_runner import SUPPORTED_DBMS
 
 
-def install_libraries():
+def install_modules():
+    """
+    Installs the necessary modules.
+
+    The following get installed if they don't exist:
+    1. pip (python 2 check)
+    (used for installing the following modules)
+    2. libtmux (v0.8.2)
+    (used for opening the tmux server/session)
+    3. yamlordereddictloader (v0.4.0)
+    (used for parsing the yaml file in the correct order)
+    4. pyyaml (v5.3.1)
+    (used for yaml file handling)
+
+    :return: None
+    """
+    import importlib
+    import site
+
     try:
+        # checks if pip is installed
         proc = subprocess.Popen(['python', '-m', 'pip', '--version'],
-                             stdout=subprocess.PIPE)
+                                stdout=subprocess.PIPE)
         proc.wait()
         # poll() returns subprocess's exit code (1 means that it failed)
         if proc.poll():
@@ -37,8 +79,10 @@ def install_libraries():
     except ImportError as err:
         if 'libtmux' in str(err):
             print ("Trying to Install required module: libtmux\n")
-            subprocess.check_call([sys.executable, "-m",
-                                   "pip", "install", 'libtmux==0.8.2'])
+            subprocess.check_call([
+                    sys.executable, "-m",
+                    "pip", "install", 'libtmux==0.8.2'
+            ])
             print('\nScreen will now clear')
             reload(site)
             globals()['libtmux'] = importlib.import_module('libtmux')
@@ -49,8 +93,10 @@ def install_libraries():
     except ImportError as err:
         if 'yamlordereddictloader' in str(err):
             print ("Trying to Install required module: yamlordereddictloader\n")
-            subprocess.check_call([sys.executable, "-m",
-                                   "pip", "install", 'yamlordereddictloader==0.4.0'])
+            subprocess.check_call([
+                    sys.executable, "-m",
+                    "pip", "install", 'yamlordereddictloader==0.4.0'
+            ])
             print('\nScreen will now clear')
             reload(site)
             globals()['yamlordereddictloader'] = importlib.import_module('yamlordereddictloader')
@@ -61,8 +107,10 @@ def install_libraries():
     except ImportError as err:
         if 'yaml' in str(err):
             print ("Trying to Install required module: yaml\n")
-            subprocess.check_call([sys.executable, "-m",
-                                   "pip", "install", 'pyyaml=5.3.1'])
+            subprocess.check_call([
+                    sys.executable, "-m",
+                    "pip", "install", 'pyyaml=5.3.1'
+            ])
             print('\nScreen will now clear')
             reload(site)
             globals()['yaml'] = importlib.import_module('yaml')
@@ -71,11 +119,20 @@ def install_libraries():
 
 
 def install_tmux():
+    """
+    Installs tmux package through apt.
+
+    Tmux is a terminal multiplexer which enables a number of terminals
+    to be created, accessed, and controlled from a single screen.
+
+    :return: None
+    """
     try:
         import apt
         cache = apt.Cache()
         if not cache['tmux'].is_installed:
-            print ("Seems like tmux is not installed.\nTrying to Install tmux...\n")
+            print ("Seems like tmux is not installed.\n"
+                   "Trying to Install tmux...\n")
             os.system('sudo apt-get install tmux=2.8-3')
             print('\nScreen will now clear')
             time.sleep(3)
@@ -93,7 +150,7 @@ def install_tmux():
             time.sleep(1)
 
 
-install_libraries()
+install_modules()
 install_tmux()
 
 YAML_FILE = "./mvcc_tests.yml"
@@ -101,14 +158,21 @@ YAML_FILE = "./mvcc_tests.yml"
 KEYS_ENTER = (curses.KEY_ENTER, ord('\n'), ord('\r'))
 KEYS_UP = (curses.KEY_UP, ord('k'))
 KEYS_DOWN = (curses.KEY_DOWN, ord('j'))
-TESTS_RUN_LINE = []
-EXIT_OPTION = ['~ EXIT ~']
-WHICH_TESTS_RUN = []
 DBMS = None
+TESTS_RUN_LINE = []  # initialized as empty so as not to be displayed if no tests have been run
+WHICH_TESTS_RUN = []
+EXIT_OPTION = ['~ EXIT ~']
 
 
 def restart_dbms(dbms):
-    dbms_service = None
+    """
+    Opens a new terminal window and restarts the selected dbms service.
+    When service gets restarted, the window closes.
+
+    :param dbms: 'oracle' | 'mysql' | 'postgres' | 'sqlserver'
+    :return: None
+    """
+    dbms_service = ''
     if "debian" in str(os.uname()):
         if dbms == 'oracle':
             dbms_service = 'oracle-xe'
@@ -120,29 +184,56 @@ def restart_dbms(dbms):
             dbms_service = 'mysql'
 
     service_restart_command = 'sudo systemctl restart ' + dbms_service
-    subprocess.call(
-        ['x-terminal-emulator', '-title', 'Restarting ' + dbms + ' Please wait..', '-geometry',
-         '60x10', '-e', service_restart_command])
+
+    subprocess.call([
+        'x-terminal-emulator',
+        '-title', 'Restarting ' + dbms + ' Please wait..',
+        '-geometry', '60x10',
+        '-e', service_restart_command
+    ])
 
 
 def run_scenario(dbms, test_num, test_comment, yamlfile):
-    subprocess.call(['x-terminal-emulator',
-                     '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment,
-                     '-geometry', '150x52',
-                     '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
+    """
+    Opens a new temrinal window and executes ./mvcc_runner.py
+    which runs the selected test scenario in a tmux session.
+
+    :param dbms: 'oracle' | 'mysql' | 'postgres' | 'sqlserver'
+    :param test_num: the number of the test scenario to be run (e.g. 'test4')
+    :param test_comment: the comment that accompanies the selected test in the yaml file
+                        e.g. (test 4 # Anomaly|Lost Update - Isolation|Serializable)
+    :param yamlfile: the location of the yaml file. Hardcoded at the moment to "./mvcc_tests.yml"
+    :return: None
+    """
+    subprocess.call([
+        'x-terminal-emulator',
+        '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment,
+        '-geometry', '150x52',
+        '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile
+    ])
 
 
-def test_selection_handler(self):
+def test_selection_handler(this):
+    """
+    Callback used for handling the test scenario selected
+    from the curses menu.
+    Upon selecting a test scenario, by pressing Enter,
+    test gets marked as ran (will be printed on the bottom of the screen)
+    and a new terminal window opens and runs the test in a tmux session.
+
+    :param this: will accept Picker's self
+    :return: None
+    """
     try:
         global WHICH_TESTS_RUN
 
-        selected_test = self.index + 1
+        selected_test = this.index + 1
 
-        if selected_test == len(self.options):
+        if selected_test == len(this.options):
             # last option, which must be 'EXIT PROGRAM'
             sys.exit(1)
 
-        if selected_test == len(self.options) - 1:
+        if selected_test == len(this.options) - 1:
             # previous to last option, which must be 'Restart dbms service'
             restart_dbms(DBMS)
             return
@@ -213,6 +304,7 @@ class Picker(object):
             else:
                 prefix = len(self.indicator) * ' '
 
+            # will paint the color blue in the selected line
             if index + 1 in WHICH_TESTS_RUN:
                 color_pair = curses.color_pair(1)
                 line = ('{0} {1}'.format(prefix, option), color_pair)
@@ -232,6 +324,7 @@ class Picker(object):
 
         lines = title_lines + option_lines + TESTS_RUN_LINE
         current_line = self.index + len(title_lines) + 1
+
         return lines, current_line
 
     def draw(self):
@@ -279,10 +372,15 @@ class Picker(object):
             elif c in KEYS_DOWN:
                 self.move_down()
             elif c in KEYS_ENTER:
+                # it will run the provided callback
+                # callback was provided when picker.start was called
+                # e.g. picker.start(test_selection_handler)
                 if callback:
                     callback(self)
                 else:
+                    # return the selected option text and index number
                     return self.get_selected()
+
     @staticmethod
     def config_curses():
         try:
@@ -307,7 +405,6 @@ class Picker(object):
         return curses.wrapper(self._start)
 
 
-
 def main():
     try:
         global DBMS
@@ -317,7 +414,7 @@ def main():
             option = picker.start()[0]
             DBMS = option
 
-        if len(sys.argv) == 2:
+        if len(sys.argv) >= 2:
             if str(sys.argv[1]) in SUPPORTED_DBMS:
                 DBMS = sys.argv[1]
             else:
@@ -329,25 +426,26 @@ def main():
             print(DBMS + ' is not running')
             sys.exit(0)
 
-        comments = find_comments(YAML_FILE, DBMS)
-        title = 'Choose a test to run in ' + DBMS + ' dbms:'
-        restart_dbms_option = [
-            '~ Restart ' + DBMS +
-            ' ~ (if an error occurs, restart the service and re-run the test)'
-        ]
-        picker = Picker(comments + restart_dbms_option + EXIT_OPTION, title, '==>')
-        picker.start(test_selection_handler)
-
         if len(sys.argv) == 3:
             test_num = sys.argv[2]
             test_comment = find_comment(YAML_FILE, DBMS, test_num)
             run_scenario(DBMS, test_num, test_comment, YAML_FILE)
+        else:
+            comments = find_comments(YAML_FILE, DBMS)
+            title = 'Choose a test to run in ' + DBMS + ' dbms:'
+            restart_dbms_option = [
+                '~ Restart ' + DBMS +
+                ' ~ (if an error occurs, restart the service and re-run the test)'
+            ]
+            picker = Picker(comments + restart_dbms_option + EXIT_OPTION, title, '==>')
+            picker.start(test_selection_handler)
 
     except KeyboardInterrupt:
         sys.exit(1)
     except Exception as err:
         input(str(err))
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
