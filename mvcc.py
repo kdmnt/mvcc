@@ -10,16 +10,16 @@ import site
 from mvcc_runner import find_comment
 from mvcc_runner import find_comments
 from mvcc_runner import is_dbms_running
-from mvcc_runner import supported_dbms
+from mvcc_runner import SUPPORTED_DBMS
 
 
-def installLibraries():
+def install_libraries():
     try:
-        p = subprocess.Popen(['python', '-m', 'pip', '--version'],
+        proc = subprocess.Popen(['python', '-m', 'pip', '--version'],
                              stdout=subprocess.PIPE)
-        p.wait()
+        proc.wait()
         # poll() returns subprocess's exit code (1 means that it failed)
-        if p.poll():
+        if proc.poll():
             print('Seems like pip is not installed.\n Trying to Install PIP...\n')
             os.system('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py')
             os.system('python get-pip.py')
@@ -70,7 +70,7 @@ def installLibraries():
             os.system('clear')
 
 
-def installTmux():
+def install_tmux():
     try:
         import apt
         cache = apt.Cache()
@@ -87,13 +87,14 @@ def installTmux():
             time.sleep(3)
             os.system('sudo apt-get install python3-apt')
             time.sleep(3)
-            installTmux()
+            install_tmux()
         else:
             print(str(err))
             time.sleep(1)
 
-installLibraries()
-installTmux()
+
+install_libraries()
+install_tmux()
 
 YAML_FILE = "./mvcc_tests.yml"
 
@@ -101,9 +102,9 @@ KEYS_ENTER = (curses.KEY_ENTER, ord('\n'), ord('\r'))
 KEYS_UP = (curses.KEY_UP, ord('k'))
 KEYS_DOWN = (curses.KEY_DOWN, ord('j'))
 TESTS_RUN_LINE = []
-EXIT_LINE = ['~ EXIT ~']
+EXIT_OPTION = ['~ EXIT ~']
 WHICH_TESTS_RUN = []
-dbms = None
+DBMS = None
 
 
 def restart_dbms(dbms):
@@ -143,7 +144,7 @@ def test_selection_handler(self):
 
         if selected_test == len(self.options) - 1:
             # previous to last option, which must be 'Restart dbms service'
-            restart_dbms(dbms)
+            restart_dbms(DBMS)
             return
 
         if selected_test not in WHICH_TESTS_RUN:
@@ -152,8 +153,8 @@ def test_selection_handler(self):
 
         test_num = 'test' + str(selected_test)
 
-        test_comment = find_comment(YAML_FILE, dbms, test_num)
-        run_scenario(dbms, test_num, test_comment, YAML_FILE)
+        test_comment = find_comment(YAML_FILE, DBMS, test_num)
+        run_scenario(DBMS, test_num, test_comment, YAML_FILE)
     except Exception as err:
         input(str(err))
         sys.exit(0)
@@ -170,12 +171,14 @@ class Picker(object):
 
     def __init__(self, options, title=None, indicator='*', default_index=0):
 
-        if len(options) == 0:
+        if not options:
             raise ValueError('options should not be an empty list')
 
         self.options = options
         self.title = title
         self.indicator = indicator
+        self.scroll_top = None
+        self.screen = None
         self.callback = None
 
         if default_index >= len(options):
@@ -211,8 +214,8 @@ class Picker(object):
                 prefix = len(self.indicator) * ' '
 
             if index + 1 in WHICH_TESTS_RUN:
-                format = curses.color_pair(1)
-                line = ('{0} {1}'.format(prefix, option), format)
+                color_pair = curses.color_pair(1)
+                line = ('{0} {1}'.format(prefix, option), color_pair)
             else:
                 line = '{0} {1}'.format(prefix, option)
             lines.append(line)
@@ -223,7 +226,7 @@ class Picker(object):
         title_lines = self.get_title_lines()
         option_lines = self.get_option_lines()
 
-        if not len(WHICH_TESTS_RUN) == 0:
+        if WHICH_TESTS_RUN:
             global TESTS_RUN_LINE
             TESTS_RUN_LINE = ['\nTests already run: ']
 
@@ -253,34 +256,35 @@ class Picker(object):
             lines_to_draw = lines[scroll_top:scroll_top+max_rows]
 
             for line in lines_to_draw:
-                if type(line) is tuple:
+                # if type(line) is tuple:
+                if isinstance(line, tuple):
                     self.screen.addnstr(y, x, line[0], max_x-2, line[1])
                 else:
                     self.screen.addnstr(y, x, line, max_x-2)
                 y += 1
 
-            if not len(WHICH_TESTS_RUN) == 0:
+            if WHICH_TESTS_RUN:
                 self.screen.addstr(str(WHICH_TESTS_RUN))
 
             self.screen.refresh()
         except:
             pass
 
-    def run_loop(self, callback = None):
+    def run_loop(self, callback=None):
         while True:
             self.draw()
-            c = self.screen.getch()
-            if c in KEYS_UP:
+            key_stroke = self.screen.getch()
+            if key_stroke in KEYS_UP:
                 self.move_up()
-            elif c in KEYS_DOWN:
+            elif key_stroke in KEYS_DOWN:
                 self.move_down()
-            elif c in KEYS_ENTER:
+            elif key_stroke in KEYS_ENTER:
                 if callback:
                     callback(self)
                 else:
                     return self.get_selected()
-
-    def config_curses(self):
+    @staticmethod
+    def config_curses():
         try:
             # use the default colors of the terminal
             curses.use_default_colors()
@@ -296,7 +300,7 @@ class Picker(object):
         self.config_curses()
         return self.run_loop(self.callback)
 
-    def start(self, callback = None):
+    def start(self, callback=None):
         if callback:
             self.callback = callback
 
@@ -306,35 +310,38 @@ class Picker(object):
 
 def main():
     try:
-        global dbms
+        global DBMS
 
         if len(sys.argv) < 2:
-            picker = Picker(supported_dbms, 'Choose a dbms', '==>')
-            option, index = picker.start()
-            dbms = option
+            picker = Picker(SUPPORTED_DBMS, 'Choose a dbms', '==>')
+            option = picker.start()[0]
+            DBMS = option
 
         if len(sys.argv) == 2:
-            if str(sys.argv[1]) in supported_dbms:
-                dbms = sys.argv[1]
+            if str(sys.argv[1]) in SUPPORTED_DBMS:
+                DBMS = sys.argv[1]
             else:
-                print('Invalid DBMS name!\nSupported DBMSs are: ' + str(supported_dbms))
+                print('Invalid DBMS name!\nSupported DBMSs are: '
+                      + str(SUPPORTED_DBMS))
                 sys.exit(0)
 
-        if not is_dbms_running(dbms):
-            print(dbms + ' is not running')
+        if not is_dbms_running(DBMS):
+            print(DBMS + ' is not running')
             sys.exit(0)
 
-        comments = find_comments(YAML_FILE, dbms)
-        title = 'Choose a test to run in ' + dbms + ' dbms:'
-        restart_dbms = ['~ Restart ' + dbms +
-                        ' ~ (if an error occurs, restart the service and re-run the test)']
-        picker = Picker(comments + restart_dbms + EXIT_LINE, title, '==>')
+        comments = find_comments(YAML_FILE, DBMS)
+        title = 'Choose a test to run in ' + DBMS + ' dbms:'
+        restart_dbms_option = [
+            '~ Restart ' + DBMS +
+            ' ~ (if an error occurs, restart the service and re-run the test)'
+        ]
+        picker = Picker(comments + restart_dbms_option + EXIT_OPTION, title, '==>')
         picker.start(test_selection_handler)
 
         if len(sys.argv) == 3:
             test_num = sys.argv[2]
-            test_comment = find_comment(YAML_FILE, dbms, test_num)
-            run_scenario(dbms, test_num, test_comment, YAML_FILE)
+            test_comment = find_comment(YAML_FILE, DBMS, test_num)
+            run_scenario(DBMS, test_num, test_comment, YAML_FILE)
 
     except KeyboardInterrupt:
         sys.exit(1)

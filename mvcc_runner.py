@@ -8,8 +8,8 @@ import time
 
 import libtmux
 from libtmux.exc import BadSessionName
-import yaml
 import yamlordereddictloader
+import yaml
 from yaml.scanner import ScannerError
 from yaml.parser import ParserError
 
@@ -26,61 +26,60 @@ class HostError(Exception):
     pass
 
 
-dbms, test_num, user, password, db, host, \
-  cfg_table_initialization, cfg_dbms_steps, \
-  connection_string, clear, server, session_name, \
-  test_comment, number_of_transactions = (None,) * 14
-supported_dbms = ['oracle', 'mysql', 'postgres', 'sqlserver']
-keep_printing_dots = False
+DBMS, CONNECTION_STRING, USER, PASSWORD, DB, HOST, \
+    CONFIG_TABLE_INITIALIZATION, CONFIG_DBMS_STEPS, CLEAR_COMMAND, \
+    TEST_NUM, TEST_COMMENT, NUMBER_OF_TRANSACTIONS, \
+    TMUX_SERVER, TMUX_SESSION_NAME = (None,) * 14
+SUPPORTED_DBMS = ['oracle', 'mysql', 'postgres', 'sqlserver']
+KEEP_PRINTING_DOTS = False
 YAML_FILE = None
-autocommit_on = None
-autocommit_off = None
-fd = sys.stdin.fileno()
-normal_terminal = termios.tcgetattr(fd)
+AUTOCOMMIT_ON = None
+AUTOCOMMIT_OFF = None
+FILE_DESCRIPTOR = sys.stdin.fileno()
+NORMAL_TERMINAL = termios.tcgetattr(FILE_DESCRIPTOR)
 
 
 def validate_arguments():
-    global dbms, test_num, YAML_FILE
+    global DBMS, TEST_NUM, YAML_FILE
 
     if len(sys.argv) < 4:
         input('Argument error \n '
               'Make sure you provide <dbms>,  <testNum> and <yaml file path>')
         sys.exit(0)
 
-    if str(sys.argv[1]) in supported_dbms:
-        dbms = sys.argv[1]
-        test_num = sys.argv[2]
+    if str(sys.argv[1]) in SUPPORTED_DBMS:
+        DBMS = sys.argv[1]
+        TEST_NUM = sys.argv[2]
         YAML_FILE = sys.argv[3]
     else:
-        input('Invalid DBMS name!\nSupported DBMSs are: ' + str(supported_dbms))
+        input('Invalid DBMS name!\nSupported DBMSs are: ' + str(SUPPORTED_DBMS))
         sys.exit(0)
 
 
-def parse_yaml(filePath):
+def parse_yaml(file_path):
     try:
-        with open(filePath, 'r') as ymlfile:
-            global cfg
-            cfg = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
+        with open(file_path, 'r') as ymlfile:
+            yaml_file = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
-        global user, password, db, host, cfg_table_initialization, \
-            cfg_dbms_steps, test_comment, number_of_transactions
+        global USER, PASSWORD, DB, HOST, CONFIG_TABLE_INITIALIZATION, \
+            CONFIG_DBMS_STEPS, TEST_COMMENT, NUMBER_OF_TRANSACTIONS
 
-        user = cfg[dbms + '-config']['user']
-        password = cfg[dbms + '-config']['password']
-        db = cfg[dbms + '-config']['db']
-        host = cfg[dbms + '-config']['host']
-        cfg_table_initialization = cfg['table-initialization']
-        cfg_dbms_steps = cfg[dbms + '-tests'][test_num]
-        test_comment = find_comment(filePath, dbms, test_num)
+        USER = yaml_file[DBMS + '-config']['user']
+        PASSWORD = yaml_file[DBMS + '-config']['password']
+        DB = yaml_file[DBMS + '-config']['db']
+        HOST = yaml_file[DBMS + '-config']['host']
+        CONFIG_TABLE_INITIALIZATION = yaml_file['table-initialization']
+        CONFIG_DBMS_STEPS = yaml_file[DBMS + '-tests'][TEST_NUM]
+        TEST_COMMENT = find_comment(file_path, DBMS, TEST_NUM)
 
         transactions = []
-        for steps in cfg_dbms_steps:
+        for steps in CONFIG_DBMS_STEPS:
             if steps[-2:] not in transactions:
                 transactions.append(steps[-2:])
 
-        number_of_transactions = len(transactions)
+        NUMBER_OF_TRANSACTIONS = len(transactions)
 
-        return cfg
+        return yaml_file
     except KeyError as err:
         input('Error while parsing the yaml file - '
               'reason "%s"' % str(err) + ' does not exist')
@@ -99,9 +98,9 @@ def parse_yaml(filePath):
         sys.exit()
 
 
-def find_comment(filePath, dbms, test_num):
+def find_comment(file_path, dbms, test_num):
     try:
-        with open(filePath, 'r') as ymlfile:
+        with open(file_path, 'r') as ymlfile:
             line_num_dbms = 1000000
             commentLine = ''
 
@@ -129,15 +128,15 @@ def find_comment(filePath, dbms, test_num):
         sys.exit()
 
 
-def find_comments(filePath, dbms):
+def find_comments(file_path, dbms):
     try:
         tests = []
 
-        with open(filePath, 'r') as ymlfile:
+        with open(file_path, 'r') as ymlfile:
             config = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
         for test in config[dbms + '-tests']:
-            tests.append(test + str(find_comment(filePath, dbms, test)))
+            tests.append(test + str(find_comment(file_path, dbms, test)))
 
         return tests
     except KeyError as err:
@@ -160,47 +159,47 @@ def find_comments(filePath, dbms):
 
 
 def prepare_connection():
-    global connection_string, clear
-    global autocommit_on, autocommit_off
-    if is_dbms_running(dbms):
-        if dbms == 'mysql':
-            connection_string = 'mysql -u ' + user + \
-                                ' -p' + password + \
-                                ' -D ' + db + \
-                                ' -h ' + host
-            clear = 'system clear'
-            autocommit_off = 'SET autocommit=0;;'
-            autocommit_on = 'SET autocommit=1;;'
-        elif dbms == 'postgres':
-            connection_string = "export PGPASSWORD='" + password + "'; " + \
+    global CONNECTION_STRING, CLEAR_COMMAND
+    global AUTOCOMMIT_ON, AUTOCOMMIT_OFF
+    if is_dbms_running(DBMS):
+        if DBMS == 'mysql':
+            CONNECTION_STRING = 'mysql -u ' + USER + \
+                                ' -p' + PASSWORD + \
+                                ' -D ' + DB + \
+                                ' -h ' + HOST
+            CLEAR_COMMAND = 'system clear'
+            AUTOCOMMIT_OFF = 'SET autocommit=0;;'
+            AUTOCOMMIT_ON = 'SET autocommit=1;;'
+        elif DBMS == 'postgres':
+            CONNECTION_STRING = "export PGPASSWORD='" + PASSWORD + "'; " + \
                                 ' psql' + \
-                                ' -h ' + host + \
-                                ' -d ' + db + \
-                                ' -U ' + user
-            clear = '\! clear'
-            autocommit_off = '\set AUTOCOMMIT off'
-            autocommit_on = '\set AUTOCOMMIT on'
-        elif dbms == 'sqlserver':
-            connection_string = 'sqlcmd -U ' + user + \
-                                ' -P' + password + \
-                                ' -d ' + db + \
-                                ' -S ' + host
-            clear = ':RESET'
-            autocommit_off = 'SET IMPLICIT_TRANSACTIONS ON'
-            autocommit_on = 'SET IMPLICIT_TRANSACTIONS OFF'
-        elif dbms == 'oracle':
-            connection_string = str('sqlplus ' +
-                                    user + '/' +
-                                    password + '@' +
-                                    host + '/' +
-                                    db)
-            clear = 'clear screen'
-            autocommit_off = 'set autocommit off;;'
-            autocommit_on = 'set autocommit on;;'
+                                ' -h ' + HOST + \
+                                ' -d ' + DB + \
+                                ' -U ' + USER
+            CLEAR_COMMAND = '\! clear'
+            AUTOCOMMIT_OFF = '\set AUTOCOMMIT off'
+            AUTOCOMMIT_ON = '\set AUTOCOMMIT on'
+        elif DBMS == 'sqlserver':
+            CONNECTION_STRING = 'sqlcmd -U ' + USER + \
+                                ' -P' + PASSWORD + \
+                                ' -d ' + DB + \
+                                ' -S ' + HOST
+            CLEAR_COMMAND = ':RESET'
+            AUTOCOMMIT_OFF = 'SET IMPLICIT_TRANSACTIONS ON'
+            AUTOCOMMIT_ON = 'SET IMPLICIT_TRANSACTIONS OFF'
+        elif DBMS == 'oracle':
+            CONNECTION_STRING = str('sqlplus ' +
+                                    USER + '/' +
+                                    PASSWORD + '@' +
+                                    HOST + '/' +
+                                    DB)
+            CLEAR_COMMAND = 'clear screen'
+            AUTOCOMMIT_OFF = 'set autocommit off;;'
+            AUTOCOMMIT_ON = 'set autocommit on;;'
     else:
-        input(dbms + ' is not running')
+        input(DBMS + ' is not running')
 
-    return connection_string
+    return CONNECTION_STRING
 
 
 def is_dbms_running(dbms):
@@ -263,14 +262,14 @@ def check_connection(connection_result, connection_string):
 
 def create_tmux_window_and_panes():
     try:
-        global server, session_name
-        server = libtmux.Server()
-        session_name = (dbms.upper() + ' -- ' + test_comment)
-        session = server.new_session(session_name=session_name,
-                                     kill_session=True,
-                                     attach=False)
+        global TMUX_SERVER, TMUX_SESSION_NAME
+        TMUX_SERVER = libtmux.Server()
+        TMUX_SESSION_NAME = (DBMS.upper() + ' -- ' + TEST_COMMENT)
+        session = TMUX_SERVER.new_session(session_name=TMUX_SESSION_NAME,
+                                          kill_session=True,
+                                          attach=False)
         window = session.new_window(attach=True,
-                                    window_name=session_name)
+                                    window_name=TMUX_SESSION_NAME)
 
         tmux_panes = []
 
@@ -278,12 +277,12 @@ def create_tmux_window_and_panes():
         pane1.reset()
         tmux_panes.append(pane1)
 
-        if number_of_transactions >= 2:
+        if NUMBER_OF_TRANSACTIONS >= 2:
             pane2 = window.split_window(vertical=False)
             pane2.reset()
             tmux_panes.append(pane2)
 
-        if number_of_transactions >= 3:
+        if NUMBER_OF_TRANSACTIONS >= 3:
             pane3 = window.split_window(vertical=False)
             pane3.reset()
             tmux_panes.append(pane3)
@@ -291,24 +290,24 @@ def create_tmux_window_and_panes():
         window.select_layout('even-horizontal')
 
         return tmux_panes
-    except BadSessionName as e:
+    except BadSessionName as err:
         print('Probably a comment in a test contains an invalid character '
               'like a colon (:) or a period (.)\n')
         time.sleep(0.3)
         print_dots(False)
-        print('Error:' + str(e))
+        print('Error:' + str(err))
         input('\n\nPress Enter to exit...')
         sys.exit(0)
-    except Exception as e:
+    except Exception as err:
         time.sleep(0.3)
         print_dots(False)
-        print('Error:' + str(e))
+        print('Error:' + str(err))
         input('\n\nPress Enter to exit...')
         sys.exit(0)
 
 
 def initiate_connection(pane):
-    pane.send_keys(connection_string)
+    pane.send_keys(CONNECTION_STRING)
 
     start_time = time.time()
 
@@ -324,7 +323,7 @@ def initiate_connection(pane):
 
         time.sleep(0.5)
         output = pane.capture_pane()
-        connected = check_connection(output, connection_string)
+        connected = check_connection(output, CONNECTION_STRING)
         if not connected:
             continue
         else:
@@ -333,14 +332,16 @@ def initiate_connection(pane):
 
 def initiate_panes(panes):
     try:
-        print('Connecting to ' + dbms)
+        print('Connecting to ' + DBMS)
 
         initiate_connection(panes[0])
-        panes[0].send_keys(autocommit_on)  # so as to terminate any left over transactions
+
+        # terminate any left over transactions
+        panes[0].send_keys(AUTOCOMMIT_ON)
 
         # table re-initialization commands in the yaml file
-        for create_table_instructions in cfg_table_initialization:
-            if dbms == 'sqlserver':
+        for create_table_instructions in CONFIG_TABLE_INITIALIZATION:
+            if DBMS == 'sqlserver':
                 if create_table_instructions == 'COMMIT;;':
                     continue
 
@@ -349,23 +350,23 @@ def initiate_panes(panes):
 
             panes[0].send_keys(create_table_instructions)
 
-        if dbms == 'sqlserver':
+        if DBMS == 'sqlserver':
             time.sleep(1)
-            panes[0].send_keys('ALTER DATABASE ' + db +
+            panes[0].send_keys('ALTER DATABASE ' + DB +
                                ' SET READ_COMMITTED_SNAPSHOT ON;;')
             panes[0].send_keys('GO')
-            panes[0].send_keys('ALTER DATABASE ' + db +
+            panes[0].send_keys('ALTER DATABASE ' + DB +
                                ' SET ALLOW_SNAPSHOT_ISOLATION ON;;')
             panes[0].send_keys('GO')
 
-        panes[0].send_keys(autocommit_off)
-        # panes[0].send_keys(autocommit)
-        # clear table initialization output,
+        panes[0].send_keys(AUTOCOMMIT_OFF)
+
         # so as to show only the Transaction relevant data in the console
-        panes[0].send_keys(clear)
+        panes[0].send_keys(CLEAR_COMMAND)
         panes[0].send_keys('')
 
         iter_panes = iter(panes)
+
         # skip the first pane which is being handled above
         next(iter_panes)
 
@@ -373,31 +374,31 @@ def initiate_panes(panes):
             # pane.send_keys(connection_string)
             # time.sleep(2)
             initiate_connection(pane)
-            pane.send_keys(autocommit_off)
-            pane.send_keys(clear)
+            pane.send_keys(AUTOCOMMIT_OFF)
+            pane.send_keys(CLEAR_COMMAND)
             pane.send_keys('')
 
-    except HostError as e:
+    except HostError as err:
         print_dots(False)
-        input('\nUnknown host:\n' + str(e) +
+        input('\nUnknown host:\n' + str(err) +
               '\n\nPress Enter to exit..')
-    except DatabaseError as e:
+    except DatabaseError as err:
         print_dots(False)
-        input('\nDatabase might not exist:\n' + str(e) +
+        input('\nDatabase might not exist:\n' + str(err) +
               '\n\nPress Enter to exit..')
-    except AuthenticationError as e:
+    except AuthenticationError as err:
         print_dots(False)
         input('\nAuthentication Error trying to connect:\n' +
-              str(e) + '\n\nPress Enter to exit..')
+              str(err) + '\n\nPress Enter to exit..')
 
 
 def execute_steps(tmux_panes):
     transaction = 'T1'
     pane = None
-    print ('\nExecuting test ' + test_comment)
-    for steps in cfg_dbms_steps:
-        current_Transaction = steps[-2:]    # last two characters (e.g. 'T2' from 'step2_T2')
-        if transaction != current_Transaction:
+    print ('\nExecuting test ' + TEST_COMMENT)
+    for steps in CONFIG_DBMS_STEPS:
+        current_transaction = steps[-2:]    # last two characters (e.g. 'T2' from 'step2_T2')
+        if transaction != current_transaction:
             time.sleep(1)   # wait 1 second after switching transaction
 
         if steps[-2:] == 'T1':
@@ -407,13 +408,13 @@ def execute_steps(tmux_panes):
         elif steps[-2:] == 'T3':
             pane = tmux_panes[1]
 
-        for transaction_steps in cfg_dbms_steps[steps]:
+        for transaction_steps in CONFIG_DBMS_STEPS[steps]:
             pane.send_keys(transaction_steps)   # execute the transaction's steps
-            if dbms == 'sqlserver':
+            if DBMS == 'sqlserver':
                 pane.send_keys('GO')
                 time.sleep(0.1)
 
-        transaction = current_Transaction
+        transaction = current_transaction
 
     tmux_panes[0].select_pane()
 
@@ -430,7 +431,7 @@ def run_tmux():
         time.sleep(0.5)
 
         # show tmux console
-        server.attach_session(target_session=session_name)
+        TMUX_SERVER.attach_session(target_session=TMUX_SESSION_NAME)
     except TypeError as err:
         print_dots(False)
         input('\nYou probably have a formatting error in the yaml file'
@@ -439,25 +440,25 @@ def run_tmux():
 
 
 def print_dots(keep_printing):
-    global keep_printing_dots
-    keep_printing_dots = keep_printing
+    global KEEP_PRINTING_DOTS
+    KEEP_PRINTING_DOTS = keep_printing
 
-    while keep_printing_dots:
+    while KEEP_PRINTING_DOTS:
         time.sleep(0.5)
         sys.stdout.write('.')
         sys.stdout.flush()
 
     if not keep_printing:
-        keep_printing_dots = False
+        KEEP_PRINTING_DOTS = False
 
 
 def hide_user_input(hide):
-    no_input_terminal = termios.tcgetattr(fd)
+    no_input_terminal = termios.tcgetattr(FILE_DESCRIPTOR)
     no_input_terminal[3] = no_input_terminal[3] & ~termios.ECHO  # lflags
     if hide:
-        termios.tcsetattr(fd, termios.TCSADRAIN, no_input_terminal)
+        termios.tcsetattr(FILE_DESCRIPTOR, termios.TCSADRAIN, no_input_terminal)
     else:
-        termios.tcsetattr(fd, termios.TCSADRAIN, normal_terminal)
+        termios.tcsetattr(FILE_DESCRIPTOR, termios.TCSADRAIN, NORMAL_TERMINAL)
 
 
 def main():
@@ -469,7 +470,7 @@ def main():
 
     prepare_connection()
 
-    thread_tmux = threading.Thread(target = run_tmux)
+    thread_tmux = threading.Thread(target=run_tmux)
     thread_tmux.start()
 
     time.sleep(0.3)
