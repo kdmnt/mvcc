@@ -177,7 +177,7 @@ class Picker(object):
         self.options = options
         self.title = title
         self.indicator = indicator
-        self.scroll_top = None
+        self.scroll_top = getattr(self, 'scroll_top', 0)
         self.screen = None
         self.callback = None
 
@@ -273,12 +273,12 @@ class Picker(object):
     def run_loop(self, callback=None):
         while True:
             self.draw()
-            key_stroke = self.screen.getch()
-            if key_stroke in KEYS_UP:
+            c = self.screen.getch()
+            if c in KEYS_UP:
                 self.move_up()
-            elif key_stroke in KEYS_DOWN:
+            elif c in KEYS_DOWN:
                 self.move_down()
-            elif key_stroke in KEYS_ENTER:
+            elif c in KEYS_ENTER:
                 if callback:
                     callback(self)
                 else:
