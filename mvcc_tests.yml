@@ -759,36 +759,6 @@ mysql-tests:
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
 
-    test13: # DAD's test13
-        step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
-            - 'SET INNODB_LOCK_WAIT_TIMEOUT=1000;;'
-            - 'DROP TABLE T;;'
-            - 'CREATE TABLE T(id int not null primary key, b int);;'
-            - 'INSERT INTO T(id,b) VALUES(1,1),(2,2);;'
-            - 'COMMIT;;'
-            - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
-            - 'BEGIN;;'
-        step2_T2:
-            - '-- Step 2. Session 2, Transaction T2'
-            - 'SET INNODB_LOCK_WAIT_TIMEOUT=1000;;'
-            - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
-            - 'BEGIN;;'
-        step3_T2:
-            - '-- Step 3. Session 2, Transaction T2'
-            - 'UPDATE T SET b=13 WHERE id=1;;'
-        step4_T1:
-            - '-- Step 4. Session 1, Transaction T1'
-            - 'UPDATE T SET b=5 WHERE id=1;;'
-            - 'COMMIT;;'
-        step5_T2:
-            - '-- Step 5. Session 2, Transaction T2'
-            - 'COMMIT;;'
-        step6_T2:
-            - '-- Step 6. Session 2, Transaction T2'
-            - 'SELECT * FROM T;;'
-            - 'COMMIT;;'
-
 
 postgres-tests:
     test1:    # Anomaly|Non-Repeatable Read - Isolation|Read Committed

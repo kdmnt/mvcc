@@ -7,13 +7,19 @@ import subprocess
 import curses
 import importlib
 import site
+from mvcc_runner import find_comment
+from mvcc_runner import find_comments
+from mvcc_runner import is_dbms_running
+from mvcc_runner import supported_dbms
+
 
 def installLibraries():
     try:
-        p = subprocess.Popen(['python', '-m', 'pip', '--version'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['python', '-m', 'pip', '--version'],
+                             stdout=subprocess.PIPE)
         p.wait()
-
-        if p.poll():  # poll() returns subprocess's exit code (1 means that it failed)
+        # poll() returns subprocess's exit code (1 means that it failed)
+        if p.poll():
             print('Seems like pip is not installed.\n Trying to Install PIP...\n')
             os.system('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py')
             os.system('python get-pip.py')
@@ -31,7 +37,8 @@ def installLibraries():
     except ImportError as err:
         if 'libtmux' in str(err):
             print ("Trying to Install required module: libtmux\n")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", 'libtmux==0.8.2'])
+            subprocess.check_call([sys.executable, "-m",
+                                   "pip", "install", 'libtmux==0.8.2'])
             print('\nScreen will now clear')
             reload(site)
             globals()['libtmux'] = importlib.import_module('libtmux')
@@ -42,7 +49,8 @@ def installLibraries():
     except ImportError as err:
         if 'yamlordereddictloader' in str(err):
             print ("Trying to Install required module: yamlordereddictloader\n")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", 'yamlordereddictloader==0.4.0'])
+            subprocess.check_call([sys.executable, "-m",
+                                   "pip", "install", 'yamlordereddictloader==0.4.0'])
             print('\nScreen will now clear')
             reload(site)
             globals()['yamlordereddictloader'] = importlib.import_module('yamlordereddictloader')
@@ -53,7 +61,8 @@ def installLibraries():
     except ImportError as err:
         if 'yaml' in str(err):
             print ("Trying to Install required module: yaml\n")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", 'pyyaml=5.3.1'])
+            subprocess.check_call([sys.executable, "-m",
+                                   "pip", "install", 'pyyaml=5.3.1'])
             print('\nScreen will now clear')
             reload(site)
             globals()['yaml'] = importlib.import_module('yaml')
@@ -86,11 +95,6 @@ def installTmux():
 installLibraries()
 installTmux()
 
-from mvcc_runner import find_comment
-from mvcc_runner import find_comments
-from mvcc_runner import is_dbms_running
-from mvcc_runner import supported_dbms
-
 YAML_FILE = "./mvcc_tests.yml"
 
 KEYS_ENTER = (curses.KEY_ENTER, ord('\n'), ord('\r'))
@@ -100,6 +104,7 @@ TESTS_RUN_LINE = []
 EXIT_LINE = ['~ EXIT ~']
 WHICH_TESTS_RUN = []
 dbms = None
+
 
 def restart_dbms(dbms):
     dbms_service = None
@@ -120,9 +125,11 @@ def restart_dbms(dbms):
 
 
 def run_scenario(dbms, test_num, test_comment, yamlfile):
-    subprocess.call(
-        ['x-terminal-emulator', '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment, '-geometry',
-         '150x52', '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
+    subprocess.call(['x-terminal-emulator',
+                     '-title', dbms.upper() + ' - ' + test_num.upper() + ' - ' + test_comment,
+                     '-geometry', '150x52',
+                     '-e', 'python ./mvcc_runner.py ' + dbms + ' ' + test_num + ' ' + yamlfile])
+
 
 def test_selection_handler(self):
     try:
@@ -130,10 +137,12 @@ def test_selection_handler(self):
 
         selected_test = self.index + 1
 
-        if selected_test == len(self.options):  # last option, which must be 'EXIT PROGRAM'
+        if selected_test == len(self.options):
+            # last option, which must be 'EXIT PROGRAM'
             sys.exit(1)
 
-        if selected_test == len(self.options) - 1:  # previous to last option, which must be 'Restart dbms service'
+        if selected_test == len(self.options) - 1:
+            # previous to last option, which must be 'Restart dbms service'
             restart_dbms(dbms)
             return
 
@@ -148,6 +157,7 @@ def test_selection_handler(self):
     except Exception as err:
         input(str(err))
         sys.exit(0)
+
 
 class Picker(object):
     """The :class:`Picker <Picker>` object
@@ -286,7 +296,6 @@ class Picker(object):
         self.config_curses()
         return self.run_loop(self.callback)
 
-
     def start(self, callback = None):
         if callback:
             self.callback = callback
@@ -317,7 +326,8 @@ def main():
 
         comments = find_comments(YAML_FILE, dbms)
         title = 'Choose a test to run in ' + dbms + ' dbms:'
-        restart_dbms = ['~ Restart ' + dbms + ' ~ (if an error occurs, restart the service and re-run the test)']
+        restart_dbms = ['~ Restart ' + dbms +
+                        ' ~ (if an error occurs, restart the service and re-run the test)']
         picker = Picker(comments + restart_dbms + EXIT_LINE, title, '==>')
         picker.start(test_selection_handler)
 
@@ -332,5 +342,5 @@ def main():
         input(str(err))
         sys.exit(0)
 
-if __name__== "__main__":
+if __name__ == "__main__":
     main()

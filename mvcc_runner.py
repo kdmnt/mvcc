@@ -1,7 +1,5 @@
 #!/usr/bin/python
 #-*-coding:utf-8-*-
-
-
 import os
 import termios
 import sys
@@ -15,19 +13,24 @@ import yamlordereddictloader
 from yaml.scanner import ScannerError
 from yaml.parser import ParserError
 
+
 class AuthenticationError(Exception):
     pass
 
+
 class DatabaseError(Exception):
     pass
+
 
 class HostError(Exception):
     pass
 
 
-dbms, test_num, user, password, db, host, cfg_table_initialization, cfg_dbms_steps, \
-    connection_string, clear, server, session_name, test_comment, number_of_transactions = (None,) * 14
-supported_dbms = ['oracle' , 'mysql', 'postgres', 'sqlserver']
+dbms, test_num, user, password, db, host, \
+  cfg_table_initialization, cfg_dbms_steps, \
+  connection_string, clear, server, session_name, \
+  test_comment, number_of_transactions = (None,) * 14
+supported_dbms = ['oracle', 'mysql', 'postgres', 'sqlserver']
 keep_printing_dots = False
 YAML_FILE = None
 autocommit_on = None
@@ -40,7 +43,8 @@ def validate_arguments():
     global dbms, test_num, YAML_FILE
 
     if len(sys.argv) < 4:
-        input('Argument error \n Make sure you provide <dbms>,  <testNum> and <yaml file path>')
+        input('Argument error \n '
+              'Make sure you provide <dbms>,  <testNum> and <yaml file path>')
         sys.exit(0)
 
     if str(sys.argv[1]) in supported_dbms:
@@ -54,7 +58,7 @@ def validate_arguments():
 
 def parse_yaml(filePath):
     try:
-        with open(filePath, 'r') as ymlfile:         
+        with open(filePath, 'r') as ymlfile:
             global cfg
             cfg = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
@@ -78,16 +82,19 @@ def parse_yaml(filePath):
 
         return cfg
     except KeyError as err:
-        input('Error while parsing the yaml file - reason "%s"' % str(err) + ' does not exist')
+        input('Error while parsing the yaml file - '
+              'reason "%s"' % str(err) + ' does not exist')
     except IOError as err:
         print('Wrong yaml file path: \n'+str(err))
         sys.exit(0)
     except ScannerError as err:
-        print('\nError in whitespace, no tabs should be used. And no whitespace is allowed at the end of a line')
+        print('\nError in whitespace, no tabs should be used. '
+              'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
     except ParserError as err:
-        print('\nError in tests/steps. Make sure they are properly aligned')
+        print('\nError in tests/steps. '
+              'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
 
@@ -111,11 +118,13 @@ def find_comment(filePath, dbms, test_num):
         print('Wrong yaml file path: \n'+str(err))
         sys.exit()
     except ScannerError as err:
-        print('\nError in whitespace, no tabs should be used. And no whitespace is allowed at the end of a line')
+        print('\nError in whitespace, no tabs should be used. '
+              'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
     except ParserError as err:
-        print('\nError in tests/steps. Make sure they are properly aligned')
+        print('\nError in tests/steps. '
+              'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
 
@@ -132,17 +141,20 @@ def find_comments(filePath, dbms):
 
         return tests
     except KeyError as err:
-        print('Error while parsing the yaml file - reason "%s"' % str(err) + ' does not exist')
+        print('Error while parsing the yaml file - '
+              'reason "%s"' % str(err) + ' does not exist')
         sys.exit(0)
     except IOError as err:
         print('Wrong yaml file path: \n'+str(err))
         sys.exit()
     except ScannerError as err:
-        print('\nError in whitespace, no tabs should be used. And no whitespace is allowed at the end of a line')
+        print('\nError in whitespace, no tabs should be used. '
+              'And no whitespace is allowed at the end of a line')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
     except ParserError as err:
-        print('\nError in tests/steps. Make sure they are properly aligned')
+        print('\nError in tests/steps. '
+              'Make sure they are properly aligned')
         print('\n\nFollowing the error message:\n\n' + str(err))
         sys.exit()
 
@@ -152,22 +164,36 @@ def prepare_connection():
     global autocommit_on, autocommit_off
     if is_dbms_running(dbms):
         if dbms == 'mysql':
-            connection_string = 'mysql -u ' + user + ' -p' + password + ' -D ' + db + ' -h ' + host
+            connection_string = 'mysql -u ' + user + \
+                                ' -p' + password + \
+                                ' -D ' + db + \
+                                ' -h ' + host
             clear = 'system clear'
             autocommit_off = 'SET autocommit=0;;'
             autocommit_on = 'SET autocommit=1;;'
         elif dbms == 'postgres':
-            connection_string = "export PGPASSWORD='" + password + "'; " + ' psql' + ' -h ' + host + ' -d ' + db + ' -U ' + user
+            connection_string = "export PGPASSWORD='" + password + "'; " + \
+                                ' psql' + \
+                                ' -h ' + host + \
+                                ' -d ' + db + \
+                                ' -U ' + user
             clear = '\! clear'
             autocommit_off = '\set AUTOCOMMIT off'
             autocommit_on = '\set AUTOCOMMIT on'
         elif dbms == 'sqlserver':
-            connection_string = 'sqlcmd -U ' + user + ' -P' + password + ' -d ' + db + ' -S ' + host
+            connection_string = 'sqlcmd -U ' + user + \
+                                ' -P' + password + \
+                                ' -d ' + db + \
+                                ' -S ' + host
             clear = ':RESET'
             autocommit_off = 'SET IMPLICIT_TRANSACTIONS ON'
             autocommit_on = 'SET IMPLICIT_TRANSACTIONS OFF'
         elif dbms == 'oracle':
-            connection_string = str('sqlplus ' + user + '/' + password + '@' + host + '/' + db)
+            connection_string = str('sqlplus ' +
+                                    user + '/' +
+                                    password + '@' +
+                                    host + '/' +
+                                    db)
             clear = 'clear screen'
             autocommit_off = 'set autocommit off;;'
             autocommit_on = 'set autocommit on;;'
@@ -197,19 +223,32 @@ def is_dbms_running(dbms):
 
 
 def check_connection(connection_result, connection_string):
-    connection_result_string = ' '.join([str(elem) for elem in connection_result]) #concatenate the error messages from a list to a string
+    # concatenate the error messages from a list to a string
+    connection_result_string = ' '.join([str(elem) for elem in connection_result])
 
-    database_errors = ['Unknown database', 'FATAL:  database', 'Cannot open database', 'ORA-12514']
+    database_errors = ['Unknown database',
+                       'FATAL:  database',
+                       'Cannot open database',
+                       'ORA-12514']
     for db_error in database_errors:
         if db_error in connection_result_string:
             raise DatabaseError(connection_string)
 
-    host_errors = ['Unknown MySQL server host', 'could not translate host name', 'Login timeout expired', 'could not connect', 'could not resolve', 'ORA-12541']
+    host_errors = ['Unknown MySQL server host',
+                   'could not translate host name',
+                   'Login timeout expired',
+                   'could not connect',
+                   'could not resolve',
+                   'ORA-12541']
     for host_error in host_errors:
         if host_error in connection_result_string:
             raise HostError(connection_string)
 
-    authentication_errors = ['Access denied', 'authentication failed', 'psql: warning: extra command' , 'Login failed', 'invalid username/password']
+    authentication_errors = ['Access denied',
+                             'authentication failed',
+                             'psql: warning: extra command',
+                             'Login failed',
+                             'invalid username/password']
     for auth_error in authentication_errors:
         if auth_error in connection_result_string:
             raise AuthenticationError(connection_string)
@@ -227,8 +266,11 @@ def create_tmux_window_and_panes():
         global server, session_name
         server = libtmux.Server()
         session_name = (dbms.upper() + ' -- ' + test_comment)
-        session = server.new_session(session_name=session_name, kill_session=True, attach=False)
-        window = session.new_window(attach=True, window_name=session_name)
+        session = server.new_session(session_name=session_name,
+                                     kill_session=True,
+                                     attach=False)
+        window = session.new_window(attach=True,
+                                    window_name=session_name)
 
         tmux_panes = []
 
@@ -250,7 +292,8 @@ def create_tmux_window_and_panes():
 
         return tmux_panes
     except BadSessionName as e:
-        print('Probably a comment in a test contains an invalid character like a colon (:) or a period (.)\n')
+        print('Probably a comment in a test contains an invalid character '
+              'like a colon (:) or a period (.)\n')
         time.sleep(0.3)
         print_dots(False)
         print('Error:' + str(e))
@@ -273,7 +316,8 @@ def initiate_connection(pane):
         if time.time() - start_time > 16:
             print_dots(False)
             print ("\n15 seconds have passed, probably the host is unreachable.\n")
-            print ("Check your yaml configuration file and make sure the service is running\n")
+            print ("Check your yaml configuration file "
+                   "and make sure the service is running\n")
             enter_pressed = input('\nPress Enter to exit..')
             if enter_pressed == "":
                 sys.exit(1)
@@ -294,7 +338,8 @@ def initiate_panes(panes):
         initiate_connection(panes[0])
         panes[0].send_keys(autocommit_on)  # so as to terminate any left over transactions
 
-        for create_table_instructions in cfg_table_initialization: #drops table T, and initializes it according to steps in the yml file
+        # table re-initialization commands in the yaml file
+        for create_table_instructions in cfg_table_initialization:
             if dbms == 'sqlserver':
                 if create_table_instructions == 'COMMIT;;':
                     continue
@@ -306,18 +351,23 @@ def initiate_panes(panes):
 
         if dbms == 'sqlserver':
             time.sleep(1)
-            panes[0].send_keys('ALTER DATABASE ' + db + ' SET READ_COMMITTED_SNAPSHOT ON;;')
+            panes[0].send_keys('ALTER DATABASE ' + db +
+                               ' SET READ_COMMITTED_SNAPSHOT ON;;')
             panes[0].send_keys('GO')
-            panes[0].send_keys('ALTER DATABASE ' + db + ' SET ALLOW_SNAPSHOT_ISOLATION ON;;')
+            panes[0].send_keys('ALTER DATABASE ' + db +
+                               ' SET ALLOW_SNAPSHOT_ISOLATION ON;;')
             panes[0].send_keys('GO')
 
         panes[0].send_keys(autocommit_off)
         # panes[0].send_keys(autocommit)
-        panes[0].send_keys(clear) # clear table initialization output, so as to show only the Transaction relevant data in the console
+        # clear table initialization output,
+        # so as to show only the Transaction relevant data in the console
+        panes[0].send_keys(clear)
         panes[0].send_keys('')
 
         iter_panes = iter(panes)
-        next(iter_panes) # so as to skip the first pane which is being handled above
+        # skip the first pane which is being handled above
+        next(iter_panes)
 
         for pane in iter_panes:
             # pane.send_keys(connection_string)
@@ -329,13 +379,16 @@ def initiate_panes(panes):
 
     except HostError as e:
         print_dots(False)
-        input('\nUnknown host:\n' + str(e) + '\n\nPress Enter to exit..')
+        input('\nUnknown host:\n' + str(e) +
+              '\n\nPress Enter to exit..')
     except DatabaseError as e:
         print_dots(False)
-        input('\nDatabase might not exist:\n' + str(e) + '\n\nPress Enter to exit..')
+        input('\nDatabase might not exist:\n' + str(e) +
+              '\n\nPress Enter to exit..')
     except AuthenticationError as e:
         print_dots(False)
-        input('\nAuthentication Error trying to connect:\n' + str(e) + '\n\nPress Enter to exit..')
+        input('\nAuthentication Error trying to connect:\n' +
+              str(e) + '\n\nPress Enter to exit..')
 
 
 def execute_steps(tmux_panes):
@@ -343,14 +396,14 @@ def execute_steps(tmux_panes):
     pane = None
     print ('\nExecuting test ' + test_comment)
     for steps in cfg_dbms_steps:
-        current_Transaction = steps[-2:] # last two characters (e.g. 'T2' from 'step2_T2')
+        current_Transaction = steps[-2:]    # last two characters (e.g. 'T2' from 'step2_T2')
         if transaction != current_Transaction:
-            time.sleep(1) # wait 1 second after switching transaction
+            time.sleep(1)   # wait 1 second after switching transaction
 
         if steps[-2:] == 'T1':
-            pane = tmux_panes[0] # use the proper pane, depending on the Transaction
+            pane = tmux_panes[0]    # use the proper pane, depending on the Transaction
         elif steps[-2:] == 'T2':
-            pane = tmux_panes[-1] #the last element of the list
+            pane = tmux_panes[-1]   # the pervious to last element of the list
         elif steps[-2:] == 'T3':
             pane = tmux_panes[1]
 
@@ -359,7 +412,6 @@ def execute_steps(tmux_panes):
             if dbms == 'sqlserver':
                 pane.send_keys('GO')
                 time.sleep(0.1)
-
 
         transaction = current_Transaction
 
@@ -376,7 +428,9 @@ def run_tmux():
 
         print_dots(False)
         time.sleep(0.5)
-        server.attach_session(target_session=session_name) # show tmux console
+
+        # show tmux console
+        server.attach_session(target_session=session_name)
     except TypeError as err:
         print_dots(False)
         input('\nYou probably have a formatting error in the yaml file'
@@ -396,6 +450,7 @@ def print_dots(keep_printing):
     if not keep_printing:
         keep_printing_dots = False
 
+
 def hide_user_input(hide):
     no_input_terminal = termios.tcgetattr(fd)
     no_input_terminal[3] = no_input_terminal[3] & ~termios.ECHO  # lflags
@@ -403,6 +458,7 @@ def hide_user_input(hide):
         termios.tcsetattr(fd, termios.TCSADRAIN, no_input_terminal)
     else:
         termios.tcsetattr(fd, termios.TCSADRAIN, normal_terminal)
+
 
 def main():
     hide_user_input(True)
@@ -421,5 +477,5 @@ def main():
 
     thread_tmux.join()
 
-if __name__== "__main__":
+if __name__ == "__main__":
     main()
