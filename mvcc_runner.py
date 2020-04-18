@@ -80,7 +80,7 @@ def parse_yaml(file_path):
         with open(file_path, 'r') as ymlfile:
             # yamlordereddictloader is needed so as to
             # be sure that tests and steps are parsed sorted
-            # so as to get printed sorted in the terminal window
+            # so that they get printed in the terminal window sorted
             yaml_file = yaml.load(ymlfile, Loader=yamlordereddictloader.Loader)
 
         global USER, PASSWORD, DB, HOST, \
@@ -207,7 +207,7 @@ def find_comments(file_path, dbms):
 
 
 def prepare_connection():
-    """Checks fills global variables with values based on the selected DBMS."""
+    """Populates global variables with values based on the selected DBMS."""
     global CONNECTION_STRING, CLEAR_COMMAND
     global AUTOCOMMIT_ON, AUTOCOMMIT_OFF
     if is_dbms_running(DBMS):
@@ -377,7 +377,7 @@ def initiate_connection(pane):
 
     start_time = time.time()
 
-    # try to connect until connection is establsished
+    # try to connect until connection is established
     # will try for 15 seconds, then execution will stop
     while True:
         if time.time() - start_time > 16:

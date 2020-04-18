@@ -30,10 +30,7 @@ import os
 import sys
 import subprocess
 import curses
-from mvcc_runner import find_comment
-from mvcc_runner import find_comments
-from mvcc_runner import is_dbms_running
-from mvcc_runner import SUPPORTED_DBMS
+
 
 
 def install_modules():
@@ -152,6 +149,11 @@ def install_tmux():
 
 install_modules()
 install_tmux()
+
+from mvcc_runner import find_comment
+from mvcc_runner import find_comments
+from mvcc_runner import is_dbms_running
+from mvcc_runner import SUPPORTED_DBMS
 
 YAML_FILE = "./mvcc_tests.yml"
 
