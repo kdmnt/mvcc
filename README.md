@@ -1,7 +1,7 @@
 # ``mvcc.py | mvcc_runner.py``
 
 
-Python scripts that run sql queries against 4 DBMSs to test transactions anomalies and how each DBMS isolation level handles them.
+Python scripts that run sql queries against 4 DBMSs to test transactions anomalies and how each DBMS mvcc-based isolation level handles them.
 
 
 # Prerequisites
