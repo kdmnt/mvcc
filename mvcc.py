@@ -57,6 +57,7 @@ def install_modules():
         proc = subprocess.Popen(['python', '-m', 'pip', '--version'],
                                 stdout=subprocess.PIPE)
         proc.wait()
+
         # poll() returns subprocess's exit code (1 means that it failed)
         if proc.poll():
             print('Seems like pip is not installed.\n Trying to Install PIP...\n')
@@ -81,6 +82,9 @@ def install_modules():
                     "pip", "install", 'libtmux==0.8.2'
             ])
             print('\nScreen will now clear')
+
+            # so that the installed module can be imported
+            # without having to rerun the script
             reload(site)
             globals()['libtmux'] = importlib.import_module('libtmux')
             time.sleep(3)

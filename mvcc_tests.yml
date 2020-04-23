@@ -181,16 +181,19 @@ oracle-tests:
 
     test7:    # Anomaly|Phantom Update - Isolation|Read Committed
         step1_T1:
-            - '-- Step 1. Session 1, Transaction T1'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
         step2_T2:
-            - '-- Step 2. Meanwhile in a concurrent Session 2, Transaction 2'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'INSERT INTO T VALUES (4,4);;'
             - 'COMMIT;;'
         step3_T1:
-            - '-- Step 3. T1 of Session 1 continues'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -296,6 +299,7 @@ oracle-tests:
             - 'column shift_id format 9999'
             - "CREATE PROCEDURE currently_on_call (doctors_on_call OUT number) IS BEGIN SELECT count(*) INTO doctors_on_call FROM doctors WHERE on_call='true' AND shift_id=1234; END;;"
             - '/'
+            - 'clear screen'
             - '--   S T E P  1  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
@@ -309,6 +313,7 @@ oracle-tests:
             - 'column name format a10'
             - 'column on_call format a7'
             - 'column shift_id format 9999'
+            - 'clear screen'
             - '--   S T E P  2  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
@@ -355,6 +360,7 @@ oracle-tests:
             - 'column shift_id format 9999'
             - "CREATE PROCEDURE currently_on_call (doctors_on_call OUT number) IS BEGIN SELECT count(*) INTO doctors_on_call FROM doctors WHERE on_call='true' AND shift_id=1234; END;;"
             - '/'
+            - 'clear screen'
             - '--   S T E P  1  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
@@ -368,6 +374,7 @@ oracle-tests:
             - 'column name format a10'
             - 'column on_call format a7'
             - 'column shift_id format 9999'
+            - 'clear screen'
             - '--   S T E P  2  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
