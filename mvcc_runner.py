@@ -324,7 +324,9 @@ def create_tmux_window_and_panes():
     try:
         global TMUX_SERVER, TMUX_SESSION_NAME
         TMUX_SERVER = libtmux.Server()
-        TMUX_SESSION_NAME = (DBMS.upper() + ' -- ' + TEST_COMMENT)
+        TMUX_SESSION_NAME = ('Switch Panes = (CTRL + B) + Arrows, '
+                             'Scroll Mode = (CTRL+ B) + "[", '
+                             'Quit Scroll Mode = "q" |')
         session = TMUX_SERVER.new_session(session_name=TMUX_SESSION_NAME,
                                           kill_session=True,
                                           attach=False)

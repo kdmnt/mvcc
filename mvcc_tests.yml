@@ -571,7 +571,6 @@ mysql-tests:
             - '--   S T E P  3  --'
             - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
-            - 'SELECT * FROM T WHERE id=1;;'
             - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
@@ -608,30 +607,36 @@ mysql-tests:
             - "INSERT INTO accounts VALUES (1, 500);;"
             - "INSERT INTO accounts VALUES (2, 500);;"
             - 'COMMIT;;'
-            - '----   S T E P  1  ----'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '----   S T E P  2  ----'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '----   S T E P  3  ----'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
             - 'SELECT * FROM accounts;;'
         step4_T2:
-            - '----   S T E P  4  ----'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'SELECT balance from accounts WHERE account_id = 2;;'
         step5_T1:
-            - '----   S T E P  5  ----'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
             - 'SELECT * from accounts;;'
             - 'COMMIT;;'
         step6_T2:
-            - '----   S T E P  6  ----'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
 
@@ -643,30 +648,36 @@ mysql-tests:
             - "INSERT INTO accounts VALUES (1, 500);;"
             - "INSERT INTO accounts VALUES (2, 500);;"
             - 'COMMIT;;'
-            - '----   S T E P  1  ----'
+            - '--   S T E P  1  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM accounts;;'
         step2_T2:
-            - '----   S T E P  2  ----'
+            - '--   S T E P  2  --'
+            - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'BEGIN;;'
             - 'SELECT * FROM accounts;;'
         step3_T1:
-            - '----   S T E P  3  ----'
+            - '--   S T E P  3  --'
+            - '-------------------'
             - 'UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;;'
             - 'SELECT * FROM accounts;;'
         step4_T2:
-            - '----   S T E P  4  ----'
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'SELECT balance from accounts WHERE account_id = 2;;'
         step5_T1:
-            - '----   S T E P  5  ----'
+            - '--   S T E P  5  --'
+            - '-------------------'
             - 'UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;;'
             - 'COMMIT;;'
             - 'SELECT * from accounts;;'
             - 'COMMIT;;'
         step6_T2:
-            - '----   S T E P  6  ----'
+            - '--   S T E P  6  --'
+            - '-------------------'
             - 'SELECT balance from accounts WHERE account_id = 1;;'
             - 'COMMIT;;'
 
@@ -750,7 +761,6 @@ mysql-tests:
             - '-------------------'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Alice" and shift_id = 1234;;'
             - 'SELECT * FROM doctors;;'
-            - 'COMMIT;;'
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
