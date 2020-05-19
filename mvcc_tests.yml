@@ -558,7 +558,7 @@ mysql-tests:
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
-            - 'SELECT * FROM T WHERE id=1;;'
+            - 'SELECT * FROM T;;'
         step2_T2:
             - '--   S T E P  2  --'
             - '-------------------'
@@ -588,6 +588,7 @@ mysql-tests:
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'BEGIN;;'
             - 'INSERT INTO T VALUES (4,4);;'
+            - 'UPDATE T SET x=41 WHERE id=1;;'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
         step3_T1:
@@ -695,6 +696,7 @@ mysql-tests:
             - 'DELIMITER //'
             - 'CREATE PROCEDURE currently_on_call(OUT doctors_on_call INT) BEGIN SELECT count(*) INTO doctors_on_call FROM doctors WHERE on_call="true" AND shift_id=1234; END//'
             - 'DELIMITER ;;'
+            - 'system clear'
             - '--   S T E P  1  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
@@ -721,9 +723,7 @@ mysql-tests:
             - 'SELECT @doctors_on_call;;'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Bob" and shift_id = 1234;;'
             - 'COMMIT;;'
-            - 'SELECT * FROM doctors;;'
-            - 'COMMIT;;'
-        step5_T1:
+        step5_T2:
             - '--   S T E P  5  --'
             - '-------------------'
             - 'SELECT * FROM doctors;;'
@@ -743,6 +743,7 @@ mysql-tests:
             - 'DELIMITER //'
             - 'CREATE PROCEDURE currently_on_call(OUT doctors_on_call INT) BEGIN SELECT count(*) INTO doctors_on_call FROM doctors WHERE on_call="true" AND shift_id=1234; END//'
             - 'DELIMITER ;;'
+            - 'system clear'
             - '--   S T E P  1  --'
             - '-------------------'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
@@ -761,16 +762,16 @@ mysql-tests:
             - '-------------------'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Alice" and shift_id = 1234;;'
             - 'SELECT * FROM doctors;;'
+            - 'COMMIT;;'
         step4_T2:
             - '--   S T E P  4  --'
             - '-------------------'
             - 'CALL currently_on_call(@doctors_on_call);;'
             - 'SELECT @doctors_on_call;;'
             - 'UPDATE doctors SET on_call = IF(@doctors_on_call >= 2, "false", "true") WHERE name = "Bob" and shift_id = 1234;;'
-            - 'COMMIT;;'
             - 'SELECT * FROM doctors;;'
             - 'COMMIT;;'
-        step5_T1:
+        step5_T2:
             - '--   S T E P  5  --'
             - '-------------------'
             - 'SELECT * FROM doctors;;'
