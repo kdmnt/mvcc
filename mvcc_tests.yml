@@ -1074,6 +1074,7 @@ postgres-tests:
             - "INSERT INTO accounts VALUES (1, 500);;"
             - "INSERT INTO accounts VALUES (2, 500);;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
@@ -1110,6 +1111,7 @@ postgres-tests:
             - "INSERT INTO accounts VALUES (1, 500);;"
             - "INSERT INTO accounts VALUES (2, 500);;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
@@ -1146,6 +1148,7 @@ postgres-tests:
             - "INSERT INTO accounts VALUES (1, 500);;"
             - "INSERT INTO accounts VALUES (2, 500);;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - 'BEGIN TRANSACTION;;'
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
@@ -1186,6 +1189,7 @@ postgres-tests:
             - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
             - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - '-----------------------'
             - 'BEGIN TRANSACTION;;'
@@ -1221,6 +1225,7 @@ postgres-tests:
             - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
             - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - '-----------------------'
             - 'BEGIN TRANSACTION;;'
@@ -1256,6 +1261,7 @@ postgres-tests:
             - "INSERT INTO doctors VALUES ('Carol', 'false', 1234);;"
             - "CREATE FUNCTION currently_on_call() RETURNS BIGINT AS $$ SELECT COUNT(*) FROM doctors where on_call = 'true' and shift_id=1234; $$ LANGUAGE SQL;;"
             - '\set AUTOCOMMIT off'
+            - '\! clear'
             - '----   S T E P  1  ----'
             - '-----------------------'
             - 'BEGIN TRANSACTION;;'
