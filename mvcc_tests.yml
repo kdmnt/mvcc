@@ -1202,11 +1202,15 @@ postgres-tests:
             - 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
+            - '----   S T E P  3  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
             - 'COMMIT;;'
         step4_T2:
+            - '----   S T E P  4  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
@@ -1238,11 +1242,15 @@ postgres-tests:
             - 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
+            - '----   S T E P  3  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
             - 'COMMIT;;'
         step4_T2:
+            - '----   S T E P  4  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
@@ -1274,11 +1282,15 @@ postgres-tests:
             - 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
         step3_T1:
+            - '----   S T E P  3  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Alice' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
             - 'COMMIT;;'
         step4_T2:
+            - '----   S T E P  4  ----'
+            - '-----------------------'
             - "UPDATE doctors SET on_call = CASE WHEN ( (SELECT currently_on_call()) >= 2) THEN 'false' ELSE on_call END WHERE name = 'Bob' and shift_id=1234;;"
             - 'COMMIT;;'
             - 'SELECT * FROM doctors ORDER BY name ASC;;'
@@ -1379,8 +1391,6 @@ sqlserver-tests:
             - '--   S T E P  3  --'
             - '-------------------'
             - 'UPDATE T SET x=13 WHERE id=1;;'
-            - 'SELECT * FROM T WHERE id=1;;'
-            - 'COMMIT;;'
             - 'SELECT * FROM T ORDER BY id;;'
             
             
@@ -1450,6 +1460,7 @@ sqlserver-tests:
             - '--   S T E P  3  --'
             - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
+            - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
     test8:    # Anomaly|Phantom Update - Isolation|Snapshot
