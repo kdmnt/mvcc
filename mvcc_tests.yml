@@ -1,13 +1,13 @@
 # Author: Konstantinos Diamantidis - March 2020
 
-# This is the YAML file that gets parsed by the mvcc.py script
+# This is the YAML file that gets parsed by the MVCC_sim.py script
 # Supported DBMSs are: MySQL | Oracle | SQL Server | PostgreSQL
-# Adding more DBMS(s) is possible, mvcc.py would require relevant updating
+# Adding more DBMS(s) is possible, MVCC_sim.py would require relevant updating
 
 # CONFIG SECTION
 # must be in the format '<dbms (lower case)>-config' (e.g.: mysql-config)
 # must include 'host', 'user', 'password', 'db' with proper values
-# if any of the above are wrong (or non-existent), an error message will be shown when running mvcc.py
+# if any of the above are wrong (or non-existent), an error message will be shown when running MVCC_sim.py
 mysql-config:
     host: 127.0.0.1
     user: root
@@ -572,6 +572,9 @@ mysql-tests:
             - '-------------------'
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'COMMIT;;'
+        step4_T1:
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
 
@@ -597,6 +600,9 @@ mysql-tests:
             - 'UPDATE T SET x=42 WHERE id=4;;'
             - 'SELECT id,x FROM T ORDER BY id;;'
             - 'COMMIT;;'
+        step4_T1:
+            - '--   S T E P  4  --'
+            - '-------------------'
             - 'SELECT * FROM T ORDER BY id;;'
             - 'COMMIT;;'
 

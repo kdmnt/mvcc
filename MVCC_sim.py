@@ -8,16 +8,16 @@ Supported DBMSs are: MySQL | Oracle | SQL Server | PostgreSQL
 
 Can run in the following ways:
 
-1.  $ python mvcc.py
+1.  $ python MVCC_sim.py
     It will open a menu to choose DBMS and then
     a menu to choose test scenario for the selected DBMS.
     After choosing a test scenario, a tmux window will open
     which will run the test steps. First window will persist.
-2.  $ python mvcc.py <dbms>
+2.  $ python MVCC_sim.py <dbms>
     It will open a menu to choose from the DBMS's test scenarios.
     After choosing a test scenario, a tmux window will open
     which will run the test steps. First window will persist.
-3.  $ python mvcc.py <dbms> <test_num>
+3.  $ python MVCC_sim.py <dbms> <test_num>
     A tmux window will open which will run the test steps.
 ------------------------------------------------------------------------------
 Author: Konstantinos Diamantidis - March 2020
